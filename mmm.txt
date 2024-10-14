@@ -1,0 +1,4127 @@
+********************************************************** QUESTION NO 1 ( PREPROCESSING DATA )***************************************************************************************
+**************************************************************************************************************************************************************************************
+
+Question 1: Preprocessing Data (Advanced)
+You are given a dataset containing 500 records with 10 attributes. The dataset contains missing values, categorical variables, and numerical features with varying distributions. The task is to ensure the data is clean and ready for modeling.
+
+Task:
+
+Apply a robust preprocessing strategy on the dataset, incorporating the following steps:
+Missing Data Imputation: Use different methods (e.g., mean, median, mode, KNN imputation) to handle missing data and discuss the impact of each method on the dataset’s distribution.
+Outlier Detection: Use graphical techniques (e.g., box plots, scatter plots) to identify outliers in the “monthly charges” and “usage duration” features. Apply z-score or IQR techniques to handle the outliers, and explain the chosen method.
+Feature Scaling: Choose an appropriate feature scaling technique (e.g., min-max scaling, standardization) based on the distribution of features. Justify your choice and demonstrate how it affects the features.
+Encoding Categorical Variables: Encode the categorical variables using One-Hot Encoding or Label Encoding. Discuss the difference between these encoding methods and which is more suitable for the given dataset.
+Dataset Splitting: Split the dataset into training, testing, and validation sets (80% training, 20% testing, and 30% of training set for validation). Justify the importance of a validation set in machine learning.
+Deliverables:
+
+Perform Exploratory Data Analysis (EDA) to provide insights into the data before and after preprocessing.
+Save the preprocessed dataset and summarize the preprocessing steps with numerical and graphical analyses.
+
+
+
+(Question 1: Preprocessing Data (Advanced) involves cleaning a dataset of 500 records with 10 attributes by addressing missing values through various imputation methods, detecting and handling outliers, scaling features appropriately, and encoding categorical variables. You will also split the dataset into training, testing, and validation sets, emphasizing the validation set's importance. Deliverables include EDA insights and a summary of preprocessing steps with analyses.)
+
+
+
+
+
+. Loading the Dataset and Initial Exploration
+You should first load your dataset and explore it to identify missing values, distributions, and categorical variables.
+
+python
+Copy code
+# Import necessary libraries
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset
+df = pd.read_csv('your_dataset.csv')
+
+# Check for missing values and general info about the dataset
+print(df.info())
+print(df.describe())
+
+# Visualize missing values in a heatmap
+sns.heatmap(df.isnull(), cbar=False, cmap='viridis')
+plt.show()
+
+# Check distribution of numerical features
+df.hist(figsize=(10,10), bins=20)
+plt.show()
+2. Handling Missing Data
+Here, we'll try different methods (mean, median, mode, KNN) to impute missing values and discuss their impact.
+
+python
+Copy code
+from sklearn.impute import KNNImputer
+
+# Mean Imputation for numerical columns
+df['column1'].fillna(df['column1'].mean(), inplace=True)
+
+# Median Imputation for numerical columns
+df['column2'].fillna(df['column2'].median(), inplace=True)
+
+# Mode Imputation for categorical columns
+df['column3'].fillna(df['column3'].mode()[0], inplace=True)
+
+# KNN Imputation for more sophisticated handling
+knn_imputer = KNNImputer(n_neighbors=5)
+df_imputed = pd.DataFrame(knn_imputer.fit_transform(df), columns=df.columns)
+
+# Check how the distribution changed after imputation
+print(df.describe())  # Check summary statistics after imputation
+3. Outlier Detection and Treatment
+Use visual methods to detect outliers, then apply Z-score or IQR techniques to handle them.
+
+python
+Copy code
+from scipy import stats
+import numpy as np
+
+# Boxplot to detect outliers
+plt.figure(figsize=(10, 5))
+sns.boxplot(data=df[['monthly_charges', 'usage_duration']])
+plt.show()
+
+# Z-score method to detect outliers
+z_scores = np.abs(stats.zscore(df[['monthly_charges', 'usage_duration']]))
+df = df[(z_scores < 3).all(axis=1)]  # Removing outliers with Z-score > 3
+
+# Alternatively, use the IQR method
+Q1 = df[['monthly_charges', 'usage_duration']].quantile(0.25)
+Q3 = df[['monthly_charges', 'usage_duration']].quantile(0.75)
+IQR = Q3 - Q1
+df = df[~((df[['monthly_charges', 'usage_duration']] < (Q1 - 1.5 * IQR)) | (df[['monthly_charges', 'usage_duration']] > (Q3 + 1.5 * IQR))).any(axis=1)]
+
+# Visualize again after handling outliers
+sns.boxplot(data=df[['monthly_charges', 'usage_duration']])
+plt.show()
+4. Feature Scaling
+Depending on the distribution, you will either apply Min-Max scaling or Standardization.
+
+python
+Copy code
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
+
+# Min-Max Scaling
+scaler = MinMaxScaler()
+df[['monthly_charges', 'usage_duration']] = scaler.fit_transform(df[['monthly_charges', 'usage_duration']])
+
+# Or, if features are normally distributed, use Standardization
+scaler = StandardScaler()
+df[['monthly_charges', 'usage_duration']] = scaler.fit_transform(df[['monthly_charges', 'usage_duration']])
+
+# Check the result of scaling
+print(df[['monthly_charges', 'usage_duration']].describe())
+5. Encoding Categorical Variables
+You can use either One-Hot Encoding or Label Encoding based on the type of categorical data.
+
+python
+Copy code
+from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+
+# One-Hot Encoding (good for non-ordinal categorical data)
+df = pd.get_dummies(df, columns=['categorical_column1', 'categorical_column2'], drop_first=True)
+
+# Label Encoding (good for ordinal data)
+label_encoder = LabelEncoder()
+df['categorical_column3'] = label_encoder.fit_transform(df['categorical_column3'])
+
+# Check the transformed categorical columns
+print(df.head())
+6. Splitting the Dataset
+Finally, split the dataset into training, validation, and test sets.
+
+python
+Copy code
+from sklearn.model_selection import train_test_split
+
+# Split into training (80%) and testing (20%) sets
+train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
+
+# Split the training set further into training (70%) and validation (30%)
+train_df, val_df = train_test_split(train_df, test_size=0.3, random_state=42)
+
+# Check the size of each split
+print(f"Training set: {train_df.shape}")
+print(f"Validation set: {val_df.shape}")
+print(f"Testing set: {test_df.shape}")
+7. Exploratory Data Analysis (EDA)
+You can now compare the dataset before and after preprocessing.
+
+python
+Copy code
+# Summary statistics of original vs. processed dataset
+print("Original Data Summary:")
+print(df.describe())
+
+print("Processed Data Summary:")
+print(df.describe())
+
+# Visualize the processed dataset
+df.hist(figsize=(10, 10), bins=20)
+plt.show()
+
+
+
+
+*********************************************************************************************************************************************
+*********************************************************************************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Question 1: Preprocessing Data (Advanced)
+You are provided with a large dataset containing customer transaction records across 12 months. Some of the attributes include the transaction amount, customer demographics (age, gender), and product details (category, price, etc.). However, the dataset has missing values, outliers, and a mixture of categorical and continuous variables.
+
+Task:
+
+Missing Value Treatment:
+Apply multiple imputation methods (e.g., KNN imputation and iterative imputation) to handle missing values. Compare the results of both methods and explain which one produces better results based on the distribution of imputed values.
+Handling Outliers:
+Use graphical methods such as box plots and Z-score analysis to identify outliers in the transaction amount. Apply an outlier handling technique (e.g., trimming, capping) and justify the decision.
+Categorical Variable Encoding:
+Some attributes, such as product category and region, are categorical. Apply target encoding and one-hot encoding on these attributes and compare the impact of both techniques on model performance (logistic regression).
+Feature Scaling:
+The age attribute has a highly skewed distribution. Apply log transformation to reduce skewness and compare the effects on model performance with and without log transformation.
+Deliverables:
+
+Implement all preprocessing steps in Python using Pandas and Scikit-learn.
+Compare model accuracy after different preprocessing strategies using a simple logistic regression model.
+Discuss which techniques worked best and provide graphical analysis.
+
+
+(You need to preprocess a customer transaction dataset with missing values, outliers, and mixed variable types. Tasks include applying and comparing KNN and iterative imputation for missing values, handling outliers, encoding categorical variables with target and one-hot encoding, and applying log transformation to skewed features. Finally, you'll assess model performance using logistic regression after different preprocessing strategies. Deliverables include a comparison of accuracies and graphical analyses.)
+
+
+
+
+
+1. Loading and Initial Exploration
+You'll need to load the dataset, inspect its structure, and check for missing values, outliers, and data types.
+
+python
+Copy code
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# Load the dataset
+df = pd.read_csv('customer_transactions.csv')
+
+# Check the basic info and missing values
+print(df.info())
+print(df.isnull().sum())
+
+# Visualize missing values using a heatmap
+sns.heatmap(df.isnull(), cbar=False, cmap='viridis')
+plt.show()
+
+# Summary statistics
+print(df.describe())
+
+# Check the distribution of transaction amounts and other continuous features
+sns.histplot(df['transaction_amount'], kde=True)
+plt.show()
+
+sns.boxplot(x='transaction_amount', data=df)
+plt.show()
+2. Handling Missing Values with KNN and Iterative Imputation
+We'll apply both KNN Imputation and Iterative Imputation and compare the distribution of the imputed values.
+
+python
+Copy code
+from sklearn.impute import KNNImputer
+from sklearn.experimental import enable_iterative_imputer  # For IterativeImputer
+from sklearn.impute import IterativeImputer
+
+# KNN Imputation
+knn_imputer = KNNImputer(n_neighbors=5)
+df_knn_imputed = pd.DataFrame(knn_imputer.fit_transform(df), columns=df.columns)
+
+# Iterative Imputation (based on Multivariate Imputation by Chained Equations)
+iter_imputer = IterativeImputer(random_state=42)
+df_iter_imputed = pd.DataFrame(iter_imputer.fit_transform(df), columns=df.columns)
+
+# Compare imputed results
+print("Original Data Missing Values:", df.isnull().sum())
+print("KNN Imputation Missing Values:", df_knn_imputed.isnull().sum())
+print("Iterative Imputation Missing Values:", df_iter_imputed.isnull().sum())
+
+# Compare distributions after imputation (for continuous variables)
+sns.histplot(df_knn_imputed['transaction_amount'], kde=True, color='blue', label='KNN Imputed')
+sns.histplot(df_iter_imputed['transaction_amount'], kde=True, color='green', label='Iterative Imputed')
+plt.legend()
+plt.show()
+3. Handling Outliers in Transaction Amount
+We'll use Z-score analysis and graphical methods (box plots) to detect and treat outliers.
+
+python
+Copy code
+from scipy import stats
+
+# Detect outliers using Z-score
+z_scores = np.abs(stats.zscore(df['transaction_amount'].dropna()))
+outliers = np.where(z_scores > 3)  # Define a threshold (typically 3)
+
+# Boxplot to visualize outliers
+sns.boxplot(x=df['transaction_amount'])
+plt.show()
+
+# Capping the outliers (setting a threshold for max/min values)
+upper_limit = df['transaction_amount'].quantile(0.99)
+lower_limit = df['transaction_amount'].quantile(0.01)
+
+df['transaction_amount_capped'] = np.where(df['transaction_amount'] > upper_limit, upper_limit, 
+                                           np.where(df['transaction_amount'] < lower_limit, lower_limit, 
+                                                    df['transaction_amount']))
+
+# Boxplot after capping outliers
+sns.boxplot(x=df['transaction_amount_capped'])
+plt.show()
+4. Encoding Categorical Variables
+We'll apply both Target Encoding and One-Hot Encoding to categorical variables and compare their effects on a logistic regression model.
+
+python
+Copy code
+from sklearn.preprocessing import OneHotEncoder
+from category_encoders import TargetEncoder
+
+# Split the data into features and target
+X = df[['product_category', 'region', 'age', 'transaction_amount_capped']]  # Add other features as necessary
+y = df['target']  # Assuming 'target' is the dependent variable
+
+# Target Encoding for categorical variables
+target_encoder = TargetEncoder()
+X_target_encoded = X.copy()
+X_target_encoded[['product_category', 'region']] = target_encoder.fit_transform(X[['product_category', 'region']], y)
+
+# One-Hot Encoding for categorical variables
+onehot_encoder = OneHotEncoder(drop='first', sparse=False)
+X_onehot_encoded = pd.DataFrame(onehot_encoder.fit_transform(X[['product_category', 'region']]), 
+                                columns=onehot_encoder.get_feature_names_out())
+X_onehot_encoded = pd.concat([X_onehot_encoded, X[['age', 'transaction_amount_capped']].reset_index(drop=True)], axis=1)
+
+# Check the encoded data
+print(X_target_encoded.head())
+print(X_onehot_encoded.head())
+5. Feature Scaling: Log Transformation on Age
+Since age has a skewed distribution, applying a log transformation can help normalize it.
+
+python
+Copy code
+# Check distribution before log transformation
+sns.histplot(df['age'], kde=True)
+plt.show()
+
+# Apply log transformation to reduce skewness
+df['age_log'] = np.log(df['age'] + 1)  # Adding 1 to avoid log(0)
+
+# Check distribution after log transformation
+sns.histplot(df['age_log'], kde=True)
+plt.show()
+6. Logistic Regression Model Comparison
+We'll compare the logistic regression model performance before and after applying different preprocessing strategies (e.g., different imputations, encoding methods, and transformations).
+
+python
+Copy code
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# Split the data for both One-Hot and Target Encoded sets
+X_train_tgt, X_test_tgt, y_train, y_test = train_test_split(X_target_encoded, y, test_size=0.2, random_state=42)
+X_train_onehot, X_test_onehot, _, _ = train_test_split(X_onehot_encoded, y, test_size=0.2, random_state=42)
+
+# Logistic Regression for Target Encoded data
+logreg_tgt = LogisticRegression()
+logreg_tgt.fit(X_train_tgt, y_train)
+y_pred_tgt = logreg_tgt.predict(X_test_tgt)
+accuracy_tgt = accuracy_score(y_test, y_pred_tgt)
+print(f"Accuracy (Target Encoding): {accuracy_tgt}")
+
+# Logistic Regression for One-Hot Encoded data
+logreg_onehot = LogisticRegression()
+logreg_onehot.fit(X_train_onehot, y_train)
+y_pred_onehot = logreg_onehot.predict(X_test_onehot)
+accuracy_onehot = accuracy_score(y_test, y_pred_onehot)
+print(f"Accuracy (One-Hot Encoding): {accuracy_onehot}")
+7. Comparison of Results and Graphical Analysis
+Finally, summarize and compare the results of each preprocessing technique and visualize the changes.
+
+python
+Copy code
+# Compare the accuracies
+print(f"Accuracy with Target Encoding: {accuracy_tgt}")
+print(f"Accuracy with One-Hot Encoding: {accuracy_onehot}")
+*****************************************************************************************************************************************
+*****************************************************************************************************************************************
+
+
+
+
+
+Task:
+
+Data Cleaning and Handling Missing Values:
+
+Apply a comprehensive data cleaning strategy. Identify missing values and outliers in the dataset.
+For missing values:
+Use mean/median imputation for continuous variables.
+Use KNN imputation for categorical variables.
+Compare the impact of both methods by calculating the change in the mean, median, and variance of the features.
+Outlier Detection and Removal:
+
+Apply z-score and IQR-based methods to detect outliers in the income and age columns.
+Remove the outliers and compare the performance of a decision tree model trained before and after outlier removal. Discuss the effect of outlier removal on model accuracy.
+Feature Scaling:
+
+Use StandardScaler for features with normal distributions and MinMaxScaler for features with skewed distributions (e.g., income).
+Compare the performance of a KNN model with and without scaling the features. Discuss the importance of scaling for distance-based algorithms.
+Categorical Variable Encoding:
+
+Implement target encoding and one-hot encoding on categorical variables (e.g., region and product preference). Compare the impact of both techniques on model performance and interpretability.
+Deliverables:
+
+Python code for cleaning, imputing, scaling, and encoding the data.
+A detailed analysis comparing the results of different preprocessing techniques and their effect on model performance.
+
+
+
+
+
+1. Data Cleaning and Handling Missing Values
+For continuous variables: Use mean/median imputation.
+For categorical variables: Use KNN imputation.
+We'll also compare the effect of each method by checking the change in mean, median, and variance of the features before and after imputation.
+
+
+
+
+
+
+((Implement a comprehensive data cleaning strategy by identifying and handling missing values with mean/median imputation for continuous variables and KNN imputation for categorical variables. Compare the impact of these methods by calculating changes in mean, median, and variance. Apply z-score and IQR methods for outlier detection in income and age, then assess the performance of a decision tree model before and after outlier removal. Finally, use StandardScaler and MinMaxScaler for feature scaling, and compare KNN model performance with and without scaling.))
+
+
+
+
+
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.impute import KNNImputer
+from sklearn.metrics import accuracy_score
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from scipy import stats
+
+# Load dataset
+df = pd.read_csv('your_dataset.csv')
+
+# Display basic info about dataset
+print(df.info())
+print(df.describe())
+
+# Step 1: Identify missing values
+print(df.isnull().sum())
+
+# Step 2: Imputation for continuous variables (mean/median)
+df['income'] = df['income'].fillna(df['income'].median())  # Median imputation
+df['age'] = df['age'].fillna(df['age'].mean())  # Mean imputation
+
+# Step 3: KNN imputation for categorical variables
+knn_imputer = KNNImputer(n_neighbors=5)
+df[['region', 'product_preference']] = knn_imputer.fit_transform(df[['region', 'product_preference']])
+
+# Compare mean, median, and variance before and after imputation
+print("Income - Mean:", df['income'].mean(), "Median:", df['income'].median(), "Variance:", df['income'].var())
+print("Age - Mean:", df['age'].mean(), "Median:", df['age'].median(), "Variance:", df['age'].var())
+
+# If required, save the cleaned data
+df.to_csv('cleaned_dataset.csv', index=False)
+2. Outlier Detection and Removal
+We'll apply Z-score and IQR-based methods to detect outliers in the income and age columns and then compare the effect on a decision tree model before and after outlier removal.
+
+python
+Copy code
+# Step 1: Outlier detection using Z-score method
+z_scores = np.abs(stats.zscore(df[['income', 'age']]))
+outliers = (z_scores > 3)  # Typically, a Z-score above 3 is considered an outlier
+df_no_outliers_z = df[(z_scores < 3).all(axis=1)]  # Remove outliers
+
+# Step 2: Outlier detection using IQR method
+Q1 = df[['income', 'age']].quantile(0.25)
+Q3 = df[['income', 'age']].quantile(0.75)
+IQR = Q3 - Q1
+
+# Remove outliers based on IQR
+df_no_outliers_iqr = df[~((df[['income', 'age']] < (Q1 - 1.5 * IQR)) | (df[['income', 'age']] > (Q3 + 1.5 * IQR))).any(axis=1)]
+
+# Train Decision Tree model before and after outlier removal
+X = df[['income', 'age', 'region', 'product_preference']]
+y = df['target']  # Assuming 'target' is the dependent variable
+
+# Train/Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Decision Tree model before outlier removal
+dt_model = DecisionTreeClassifier(random_state=42)
+dt_model.fit(X_train, y_train)
+y_pred = dt_model.predict(X_test)
+accuracy_before = accuracy_score(y_test, y_pred)
+print(f"Accuracy before outlier removal: {accuracy_before}")
+
+# Decision Tree model after Z-score based outlier removal
+X_train_no_outliers_z, X_test_no_outliers_z, y_train_no_outliers_z, y_test_no_outliers_z = train_test_split(
+    df_no_outliers_z[['income', 'age', 'region', 'product_preference']], df_no_outliers_z['target'], test_size=0.2, random_state=42)
+dt_model.fit(X_train_no_outliers_z, y_train_no_outliers_z)
+y_pred_no_outliers_z = dt_model.predict(X_test_no_outliers_z)
+accuracy_after_z = accuracy_score(y_test_no_outliers_z, y_pred_no_outliers_z)
+print(f"Accuracy after Z-score based outlier removal: {accuracy_after_z}")
+
+# Decision Tree model after IQR-based outlier removal
+X_train_no_outliers_iqr, X_test_no_outliers_iqr, y_train_no_outliers_iqr, y_test_no_outliers_iqr = train_test_split(
+    df_no_outliers_iqr[['income', 'age', 'region', 'product_preference']], df_no_outliers_iqr['target'], test_size=0.2, random_state=42)
+dt_model.fit(X_train_no_outliers_iqr, y_train_no_outliers_iqr)
+y_pred_no_outliers_iqr = dt_model.predict(X_test_no_outliers_iqr)
+accuracy_after_iqr = accuracy_score(y_test_no_outliers_iqr, y_pred_no_outliers_iqr)
+print(f"Accuracy after IQR-based outlier removal: {accuracy_after_iqr}")
+3. Feature Scaling
+Use StandardScaler for normally distributed features and MinMaxScaler for skewed features. We'll compare KNN model performance before and after scaling.
+
+python
+Copy code
+from sklearn.neighbors import KNeighborsClassifier
+
+# Step 1: Check distributions (skewed vs normal)
+sns.histplot(df['income'], kde=True)  # Skewed
+sns.histplot(df['age'], kde=True)  # Likely normal
+
+# Step 2: Apply feature scaling
+scaler_standard = StandardScaler()
+scaler_minmax = MinMaxScaler()
+
+# Apply standard scaling to 'age' (normal distribution)
+df['age_scaled'] = scaler_standard.fit_transform(df[['age']])
+
+# Apply MinMax scaling to 'income' (skewed distribution)
+df['income_scaled'] = scaler_minmax.fit_transform(df[['income']])
+
+# KNN model before scaling
+X_knn = df[['income', 'age', 'region', 'product_preference']]
+y_knn = df['target']
+
+X_train_knn, X_test_knn, y_train_knn, y_test_knn = train_test_split(X_knn, y_knn, test_size=0.2, random_state=42)
+knn_model = KNeighborsClassifier(n_neighbors=5)
+knn_model.fit(X_train_knn, y_train_knn)
+y_pred_knn = knn_model.predict(X_test_knn)
+accuracy_before_scaling = accuracy_score(y_test_knn, y_pred_knn)
+print(f"KNN accuracy before scaling: {accuracy_before_scaling}")
+
+# KNN model after scaling
+X_knn_scaled = df[['income_scaled', 'age_scaled', 'region', 'product_preference']]
+X_train_knn_scaled, X_test_knn_scaled, y_train_knn_scaled, y_test_knn_scaled = train_test_split(X_knn_scaled, y_knn, test_size=0.2, random_state=42)
+
+knn_model.fit(X_train_knn_scaled, y_train_knn_scaled)
+y_pred_knn_scaled = knn_model.predict(X_test_knn_scaled)
+accuracy_after_scaling = accuracy_score(y_test_knn_scaled, y_pred_knn_scaled)
+print(f"KNN accuracy after scaling: {accuracy_after_scaling}")
+4. Categorical Variable Encoding
+We'll use both Target Encoding and One-Hot Encoding for categorical variables and compare the model performance.
+
+python
+Copy code
+from category_encoders import TargetEncoder
+from sklearn.preprocessing import OneHotEncoder
+
+# Step 1: Target Encoding
+target_encoder = TargetEncoder()
+X_target_encoded = df[['income', 'age', 'region', 'product_preference']]
+X_target_encoded[['region', 'product_preference']] = target_encoder.fit_transform(X_target_encoded[['region', 'product_preference']], df['target'])
+
+# Step 2: One-Hot Encoding
+onehot_encoder = OneHotEncoder(drop='first', sparse=False)
+X_onehot_encoded = onehot_encoder.fit_transform(df[['region', 'product_preference']])
+X_onehot_encoded = pd.DataFrame(X_onehot_encoded, columns=onehot_encoder.get_feature_names_out())
+X_onehot_encoded = pd.concat([X_onehot_encoded, df[['income', 'age']].reset_index(drop=True)], axis=1)
+
+# Compare models using Decision Tree
+X_train_target, X_test_target, y_train_target, y_test_target = train_test_split(X_target_encoded, y, test_size=0.2, random_state=42)
+dt_model.fit(X_train_target, y_train_target)
+y_pred_target = dt_model.predict(X_test_target)
+accuracy_target = accuracy_score(y_test_target, y_pred_target)
+print(f"Accuracy with Target Encoding: {accuracy_target}")
+
+X_train_onehot, X_test_onehot, y_train_onehot, y_test_onehot = train_test_split(X_onehot_encoded, y, test_size=0.2, random_state=42)
+dt_model.fit(X_train_onehot, y_train_onehot)
+y_pred_onehot = dt_model.predict(X_test_onehot)
+accuracy_onehot = accuracy_score(y_test_onehot, y_pred_onehot)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&Training and Evaluating Data Models (Advanced)&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+
+
+Question 2: Training and Evaluating Data Models (Advanced)
+You are tasked with developing and evaluating a predictive model using a dataset of customer records to predict customer churn (whether a customer will leave the service or not). The dataset contains categorical and numerical features with class imbalance issues.
+
+Task:
+
+Train and evaluate two machine learning models (e.g., Logistic Regression and Random Forest) to predict customer churn. Follow these steps:
+Model Training: Split the data into training and testing sets (80/20). Train the models using appropriate hyperparameters.
+Class Imbalance Handling: Apply upsampling or downsampling techniques to handle the imbalance between classes. Evaluate the performance of the models on the imbalanced and balanced datasets.
+Evaluation Metrics: Compare the models using accuracy, precision, recall, F1-score, and AUC-ROC curve. Discuss which metric is the most appropriate for evaluating this imbalanced classification problem.
+Cross-Validation: Use Stratified K-Fold Cross-Validation (with 10 folds) to evaluate the models. Compare the cross-validation results with those from the train-test split and explain the importance of cross-validation in improving model robustness.
+Critical Analysis: Provide a detailed analysis of the performance of Logistic Regression vs. Random Forest on both the imbalanced and balanced datasets. Identify which model handles class imbalance better and why.
+Deliverables:
+
+Code for model training, class balancing, and evaluation.
+Plots of confusion matrices, AUC-ROC curves, and comparison tables for all models and metrics.
+
+
+
+(
+((Develop predictive models for customer churn using Logistic Regression and Random Forest, focusing on class imbalance. Split the dataset into training and testing sets, then apply upsampling or downsampling techniques. Evaluate models using accuracy, precision, recall, F1-score, and AUC-ROC, and compare results with Stratified K-Fold Cross-Validation. Provide a critical analysis of each model's performance on both imbalanced and balanced datasets.)
+
+
+
+
+Step 1: Load the Dataset and Split the Data
+We will start by loading the customer churn dataset, handling any necessary preprocessing, and splitting the data into training (80%) and testing (20%) sets.
+
+python
+Copy code
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, StratifiedKFold, cross_val_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix, classification_report, roc_auc_score, roc_curve
+from sklearn.utils import resample
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load dataset
+df = pd.read_csv('customer_churn.csv')
+
+# Split the dataset into features (X) and target (y)
+X = df.drop(columns=['churn'])  # Assuming 'churn' is the target variable
+y = df['churn']
+
+# Train-test split (80% training, 20% testing)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=42)
+
+# Check the distribution of the target variable in the training set (class imbalance)
+print(y_train.value_counts())
+Step 2: Handle Class Imbalance
+We will apply two methods: upsampling and downsampling to balance the classes. We will then evaluate the performance of both models on imbalanced and balanced datasets.
+
+Upsampling the Minority Class
+python
+Copy code
+# Upsample the minority class (churn = 1)
+df_train = pd.concat([X_train, y_train], axis=1)
+df_majority = df_train[df_train.churn == 0]
+df_minority = df_train[df_train.churn == 1]
+
+# Upsample minority class
+df_minority_upsampled = resample(df_minority, 
+                                 replace=True,     # sample with replacement
+                                 n_samples=len(df_majority),  # match majority class size
+                                 random_state=42)  # reproducible results
+
+# Combine majority class with upsampled minority class
+df_upsampled = pd.concat([df_majority, df_minority_upsampled])
+
+# Separate into features and target
+X_train_upsampled = df_upsampled.drop(columns=['churn'])
+y_train_upsampled = df_upsampled['churn']
+
+print(y_train_upsampled.value_counts())  # Check the class distribution
+Downsampling the Majority Class
+python
+Copy code
+# Downsample the majority class (churn = 0)
+df_majority_downsampled = resample(df_majority,
+                                   replace=False,    # sample without replacement
+                                   n_samples=len(df_minority),  # match minority class size
+                                   random_state=42)
+
+# Combine minority class with downsampled majority class
+df_downsampled = pd.concat([df_majority_downsampled, df_minority])
+
+# Separate into features and target
+X_train_downsampled = df_downsampled.drop(columns=['churn'])
+y_train_downsampled = df_downsampled['churn']
+
+print(y_train_downsampled.value_counts())  # Check the class distribution
+Step 3: Train Logistic Regression and Random Forest Models
+Train the models using the original (imbalanced), upsampled, and downsampled datasets, and compare their performance.
+
+python
+Copy code
+# Initialize models
+logreg = LogisticRegression(random_state=42, max_iter=1000)
+rf = RandomForestClassifier(random_state=42)
+
+# Train Logistic Regression on imbalanced data
+logreg.fit(X_train, y_train)
+y_pred_logreg = logreg.predict(X_test)
+
+# Train Random Forest on imbalanced data
+rf.fit(X_train, y_train)
+y_pred_rf = rf.predict(X_test)
+
+# Train Logistic Regression on upsampled data
+logreg.fit(X_train_upsampled, y_train_upsampled)
+y_pred_logreg_upsampled = logreg.predict(X_test)
+
+# Train Random Forest on upsampled data
+rf.fit(X_train_upsampled, y_train_upsampled)
+y_pred_rf_upsampled = rf.predict(X_test)
+
+# Train Logistic Regression on downsampled data
+logreg.fit(X_train_downsampled, y_train_downsampled)
+y_pred_logreg_downsampled = logreg.predict(X_test)
+
+# Train Random Forest on downsampled data
+rf.fit(X_train_downsampled, y_train_downsampled)
+y_pred_rf_downsampled = rf.predict(X_test)
+Step 4: Evaluate Models on Imbalanced and Balanced Datasets
+We’ll evaluate models using accuracy, precision, recall, F1-score, and AUC-ROC.
+
+python
+Copy code
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+
+# Function to calculate metrics
+def evaluate_model(y_true, y_pred):
+    accuracy = accuracy_score(y_true, y_pred)
+    precision = precision_score(y_true, y_pred)
+    recall = recall_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred)
+    auc = roc_auc_score(y_true, y_pred)
+    return accuracy, precision, recall, f1, auc
+
+# Evaluate each model
+metrics_logreg = evaluate_model(y_test, y_pred_logreg)
+metrics_rf = evaluate_model(y_test, y_pred_rf)
+metrics_logreg_upsampled = evaluate_model(y_test, y_pred_logreg_upsampled)
+metrics_rf_upsampled = evaluate_model(y_test, y_pred_rf_upsampled)
+metrics_logreg_downsampled = evaluate_model(y_test, y_pred_logreg_downsampled)
+metrics_rf_downsampled = evaluate_model(y_test, y_pred_rf_downsampled)
+
+# Print results
+print("Logistic Regression (Imbalanced):", metrics_logreg)
+print("Random Forest (Imbalanced):", metrics_rf)
+print("Logistic Regression (Upsampled):", metrics_logreg_upsampled)
+print("Random Forest (Upsampled):", metrics_rf_upsampled)
+print("Logistic Regression (Downsampled):", metrics_logreg_downsampled)
+print("Random Forest (Downsampled):", metrics_rf_downsampled)
+Step 5: Confusion Matrix and ROC-AUC Curves
+We will now plot the confusion matrix and AUC-ROC curves for model evaluation.
+
+python
+Copy code
+from sklearn.metrics import plot_confusion_matrix
+
+# Confusion Matrix for each model
+plot_confusion_matrix(logreg, X_test, y_test, display_labels=['No Churn', 'Churn'])
+plt.title("Logistic Regression (Imbalanced)")
+plt.show()
+
+plot_confusion_matrix(rf, X_test, y_test, display_labels=['No Churn', 'Churn'])
+plt.title("Random Forest (Imbalanced)")
+plt.show()
+
+# ROC-AUC curve
+fpr_logreg, tpr_logreg, _ = roc_curve(y_test, logreg.predict_proba(X_test)[:,1])
+fpr_rf, tpr_rf, _ = roc_curve(y_test, rf.predict_proba(X_test)[:,1])
+
+plt.plot(fpr_logreg, tpr_logreg, label='Logistic Regression (AUC = {:.2f})'.format(roc_auc_score(y_test, logreg.predict_proba(X_test)[:,1])))
+plt.plot(fpr_rf, tpr_rf, label='Random Forest (AUC = {:.2f})'.format(roc_auc_score(y_test, rf.predict_proba(X_test)[:,1])))
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve')
+plt.legend()
+plt.show()
+Step 6: Cross-Validation (Stratified K-Fold)
+We'll use Stratified K-Fold Cross-Validation to ensure balanced splits and evaluate model robustness.
+
+python
+Copy code
+from sklearn.model_selection import StratifiedKFold
+
+# Stratified K-Fold Cross-Validation (10 folds)
+skf = StratifiedKFold(n_splits=10, shuffle=True, random_state=42)
+
+# Logistic Regression with cross-validation
+cv_scores_logreg = cross_val_score(logreg, X_train, y_train, cv=skf, scoring='accuracy')
+print(f"Logistic Regression (CV Accuracy): {np.mean(cv_scores_logreg)}")
+
+# Random Forest with cross-validation
+cv_scores_rf = cross_val_score(rf, X_train, y_train, cv=skf, scoring='accuracy')
+print(f"Random Forest (CV Accuracy): {np.mean(cv_scores_rf)}")
+
+
+
+********************************************************************************************************************************
+********************************************************************************************************************************
+
+
+
+
+
+
+
+
+
+
+You are given a dataset on employee performance in a company. The task is to predict whether an employee will receive a promotion based on various features like department, tenure, education level, and performance metrics. However, the data is highly imbalanced with only 15% of the employees receiving a promotion.
+
+Task:
+
+Model Selection and Training:
+Train a Logistic Regression and XGBoost model on this dataset. Use the SMOTE technique to handle class imbalance and compare model performances before and after applying SMOTE.
+Hyperparameter Tuning:
+Use Grid Search or Random Search to tune the hyperparameters for both models. Explain the impact of different hyperparameters on the models' performance.
+Model Evaluation:
+Evaluate the models using Precision, Recall, F1-Score, and ROC-AUC Curve. Explain why precision and recall might be more useful metrics than accuracy for this problem.
+Cross-Validation:
+Use Stratified K-Fold Cross-Validation (5 folds) to compare the model's performance across different splits. Analyze how cross-validation improves the reliability of your model's performance metrics.
+Deliverables:
+
+Provide the Python code for training the models, tuning hyperparameters, and applying SMOTE.
+Plot and discuss the performance of models using the confusion matrix, ROC-AUC curves, and other metrics.
+
+
+
+
+
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split, StratifiedKFold, GridSearchCV, RandomizedSearchCV
+from sklearn.linear_model import LogisticRegression
+from xgboost import XGBClassifier
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, roc_curve
+from imblearn.over_sampling import SMOTE
+import matplotlib.pyplot as plt
+
+# Load your dataset
+# Replace 'your_dataset.csv' with the actual dataset
+data = pd.read_csv('your_dataset.csv')
+
+# Define features and target variable
+X = data.drop('target', axis=1)
+y = data['target']
+Step 2: Train-Test Split
+Split your data into training and testing sets.
+
+python
+Copy code
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=42)
+Step 3: Train Logistic Regression and XGBoost without SMOTE
+Train both models on the original dataset.
+
+python
+Copy code
+# Train Logistic Regression
+log_reg = LogisticRegression(solver='liblinear')
+log_reg.fit(X_train, y_train)
+
+# Train XGBoost
+xgb_model = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
+xgb_model.fit(X_train, y_train)
+Step 4: Evaluate Models without SMOTE
+Evaluate the models using the confusion matrix and performance metrics.
+
+python
+Copy code
+# Predictions
+y_pred_log_reg = log_reg.predict(X_test)
+y_pred_xgb = xgb_model.predict(X_test)
+
+# Confusion Matrix
+print("Logistic Regression Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred_log_reg))
+print("\nXGBoost Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred_xgb))
+
+# Classification Reports
+print("Logistic Regression Classification Report:")
+print(classification_report(y_test, y_pred_log_reg))
+print("XGBoost Classification Report:")
+print(classification_report(y_test, y_pred_xgb))
+
+# ROC-AUC
+roc_auc_log_reg = roc_auc_score(y_test, log_reg.predict_proba(X_test)[:, 1])
+roc_auc_xgb = roc_auc_score(y_test, xgb_model.predict_proba(X_test)[:, 1])
+
+print(f"ROC-AUC for Logistic Regression: {roc_auc_log_reg:.2f}")
+print(f"ROC-AUC for XGBoost: {roc_auc_xgb:.2f}")
+Step 5: Apply SMOTE
+Now apply the SMOTE technique to handle class imbalance.
+
+python
+Copy code
+# Apply SMOTE
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
+
+# Train models on resampled data
+log_reg.fit(X_resampled, y_resampled)
+xgb_model.fit(X_resampled, y_resampled)
+Step 6: Evaluate Models after SMOTE
+Re-evaluate both models.
+
+python
+Copy code
+# Predictions
+y_pred_log_reg_smote = log_reg.predict(X_test)
+y_pred_xgb_smote = xgb_model.predict(X_test)
+
+# Confusion Matrix
+print("Logistic Regression Confusion Matrix after SMOTE:")
+print(confusion_matrix(y_test, y_pred_log_reg_smote))
+print("\nXGBoost Confusion Matrix after SMOTE:")
+print(confusion_matrix(y_test, y_pred_xgb_smote))
+
+# Classification Reports
+print("Logistic Regression Classification Report after SMOTE:")
+print(classification_report(y_test, y_pred_log_reg_smote))
+print("XGBoost Classification Report after SMOTE:")
+print(classification_report(y_test, y_pred_xgb_smote))
+
+# ROC-AUC
+roc_auc_log_reg_smote = roc_auc_score(y_test, log_reg.predict_proba(X_test)[:, 1])
+roc_auc_xgb_smote = roc_auc_score(y_test, xgb_model.predict_proba(X_test)[:, 1])
+
+print(f"ROC-AUC for Logistic Regression after SMOTE: {roc_auc_log_reg_smote:.2f}")
+print(f"ROC-AUC for XGBoost after SMOTE: {roc_auc_xgb_smote:.2f}")
+Step 7: Hyperparameter Tuning
+Use Grid Search for hyperparameter tuning.
+
+python
+Copy code
+# Hyperparameter tuning for Logistic Regression
+param_grid_log_reg = {
+    'C': [0.001, 0.01, 0.1, 1, 10],
+    'max_iter': [100, 200, 300]
+}
+grid_log_reg = GridSearchCV(LogisticRegression(solver='liblinear'), param_grid_log_reg, cv=5, scoring='f1')
+grid_log_reg.fit(X_resampled, y_resampled)
+
+print("Best parameters for Logistic Regression:", grid_log_reg.best_params_)
+
+# Hyperparameter tuning for XGBoost
+param_grid_xgb = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [3, 5, 7],
+    'learning_rate': [0.01, 0.1, 0.2]
+}
+grid_xgb = GridSearchCV(XGBClassifier(use_label_encoder=False, eval_metric='logloss'), param_grid_xgb, cv=5, scoring='f1')
+grid_xgb.fit(X_resampled, y_resampled)
+
+print("Best parameters for XGBoost:", grid_xgb.best_params_)
+Step 8: Cross-Validation
+Use Stratified K-Fold Cross-Validation to assess performance reliability.
+
+python
+Copy code
+# Stratified K-Fold
+kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+for train_index, test_index in kf.split(X, y):
+    X_train_cv, X_test_cv = X.iloc[train_index], X.iloc[test_index]
+    y_train_cv, y_test_cv = y.iloc[train_index], y.iloc[test_index]
+    
+    # Apply SMOTE in each fold
+    X_resampled_cv, y_resampled_cv = smote.fit_resample(X_train_cv, y_train_cv)
+
+    # Train and evaluate models
+    log_reg.fit(X_resampled_cv, y_resampled_cv)
+    xgb_model.fit(X_resampled_cv, y_resampled_cv)
+    
+    # Calculate and print ROC-AUC scores
+    roc_auc_log_reg_cv = roc_auc_score(y_test_cv, log_reg.predict_proba(X_test_cv)[:, 1])
+    roc_auc_xgb_cv = roc_auc_score(y_test_cv, xgb_model.predict_proba(X_test_cv)[:, 1])
+    
+    print(f"ROC-AUC for Logistic Regression in fold: {roc_auc_log_reg_cv:.2f}")
+    print(f"ROC-AUC for XGBoost in fold: {roc_auc_xgb_cv:.2f}")
+Step 9: Visualizing the Results
+You can plot the confusion matrix and ROC curves.
+
+python
+Copy code
+def plot_confusion_matrix(y_true, y_pred, title):
+    cm = confusion_matrix(y_true, y_pred)
+    plt.figure(figsize=(6, 4))
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(2)
+    plt.xticks(tick_marks, ['Negative', 'Positive'])
+    plt.yticks(tick_marks, ['Negative', 'Positive'])
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.tight_layout()
+    plt.show()
+
+plot_confusion_matrix(y_test, y_pred_log_reg_smote, 'Logistic Regression Confusion Matrix after SMOTE')
+plot_confusion_matrix(y_test, y_pred_xgb_smote, 'XGBoost Confusion Matrix after SMOTE')
+
+# Plot ROC Curves
+def plot_roc_curve(y_true, y_prob, label):
+    fpr, tpr, _ = roc_curve(y_true, y_prob)
+    plt.plot(fpr, tpr, label=label)
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver Operating Characteristic')
+    plt.legend(loc='best')
+
+plt.figure(figsize=(8, 6))
+plot_roc_curve(y_test, log_reg.predict_proba(X_test)[:, 1], 'Logistic Regression')
+plot_roc_curve(y_test, xgb_model.predict_proba(X_test)[:, 1], 'XGBoost')
+plt.show()
+
+
+
+
+
+********************************************************************************************************
+********************************************************************************************************
+
+
+
+
+
+
+
+
+
+
+You have a medical dataset containing records of patients diagnosed with a disease. The dataset includes patient demographics, lab test results, and symptoms. The target variable indicates whether a patient has the disease (1) or not (0). However, the dataset suffers from class imbalance, with only 10% of patients being diagnosed with the disease.
+
+Task:
+
+Model Training:
+
+Train a Logistic Regression and Random Forest classifier on the dataset. Use Stratified K-Fold Cross-Validation to ensure balanced class representation during model training.
+Report the average accuracy, precision, recall, F1-score, and AUC-ROC for both models.
+Handling Class Imbalance:
+
+Use SMOTE (Synthetic Minority Over-sampling Technique) to generate synthetic examples for the minority class. Retrain the Logistic Regression and Random Forest models using the oversampled data.
+Compare the models' performance before and after applying SMOTE using the same metrics. Discuss the effect of SMOTE on class imbalance.
+Feature Selection:
+
+Perform Recursive Feature Elimination (RFE) on the dataset to identify the most important features. Retrain the Logistic Regression and Random Forest models using only the top 10 features.
+Compare the performance of the models with and without feature selection. Explain the impact of feature selection on model interpretability and performance.
+Hyperparameter Tuning:
+
+Use Grid Search to tune hyperparameters for the Random Forest model (e.g., number of trees, max depth, min samples split). Report the best hyperparameters and the corresponding model performance.
+Deliverables:
+
+Python code for training, feature selection, class imbalance handling, and hyperparameter tuning.
+A detailed comparison of model performance, including metrics, confusion matrices, and AUC-ROC curves.
+
+
+
+
+
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split, StratifiedKFold, GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score, roc_curve, accuracy_score, precision_score, recall_score, f1_score
+from imblearn.over_sampling import SMOTE
+from sklearn.feature_selection import RFE
+import matplotlib.pyplot as plt
+
+# Load your dataset
+# Replace 'your_dataset.csv' with the actual dataset
+data = pd.read_csv('your_dataset.csv')
+
+# Define features and target variable
+X = data.drop('target', axis=1)
+y = data['target']
+Step 2: Model Training with Stratified K-Fold Cross-Validation
+First, we will train the models without handling class imbalance.
+
+python
+Copy code
+# Define Stratified K-Fold Cross-Validation
+kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+# Initialize metrics
+metrics_log_reg = []
+metrics_random_forest = []
+
+for train_index, test_index in kf.split(X, y):
+    X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+
+    # Train Logistic Regression
+    log_reg = LogisticRegression(solver='liblinear')
+    log_reg.fit(X_train, y_train)
+    y_pred_log_reg = log_reg.predict(X_test)
+
+    # Train Random Forest
+    rf_model = RandomForestClassifier(random_state=42)
+    rf_model.fit(X_train, y_train)
+    y_pred_rf = rf_model.predict(X_test)
+
+    # Calculate metrics
+    metrics_log_reg.append([
+        accuracy_score(y_test, y_pred_log_reg),
+        precision_score(y_test, y_pred_log_reg),
+        recall_score(y_test, y_pred_log_reg),
+        f1_score(y_test, y_pred_log_reg),
+        roc_auc_score(y_test, log_reg.predict_proba(X_test)[:, 1])
+    ])
+
+    metrics_random_forest.append([
+        accuracy_score(y_test, y_pred_rf),
+        precision_score(y_test, y_pred_rf),
+        recall_score(y_test, y_pred_rf),
+        f1_score(y_test, y_pred_rf),
+        roc_auc_score(y_test, rf_model.predict_proba(X_test)[:, 1])
+    ])
+
+# Average metrics
+metrics_log_reg = np.mean(metrics_log_reg, axis=0)
+metrics_random_forest = np.mean(metrics_random_forest, axis=0)
+
+print("Logistic Regression Metrics (without SMOTE):")
+print(f"Accuracy: {metrics_log_reg[0]:.2f}, Precision: {metrics_log_reg[1]:.2f}, Recall: {metrics_log_reg[2]:.2f}, F1 Score: {metrics_log_reg[3]:.2f}, AUC-ROC: {metrics_log_reg[4]:.2f}")
+
+print("Random Forest Metrics (without SMOTE):")
+print(f"Accuracy: {metrics_random_forest[0]:.2f}, Precision: {metrics_random_forest[1]:.2f}, Recall: {metrics_random_forest[2]:.2f}, F1 Score: {metrics_random_forest[3]:.2f}, AUC-ROC: {metrics_random_forest[4]:.2f}")
+Step 3: Handling Class Imbalance with SMOTE
+Now apply SMOTE to generate synthetic examples for the minority class.
+
+python
+Copy code
+# Initialize metrics after SMOTE
+metrics_log_reg_smote = []
+metrics_random_forest_smote = []
+
+for train_index, test_index in kf.split(X, y):
+    X_train, X_test = X.iloc[train_index], X.iloc[test_index]
+    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+
+    # Apply SMOTE
+    smote = SMOTE(random_state=42)
+    X_resampled, y_resampled = smote.fit_resample(X_train, y_train)
+
+    # Train Logistic Regression
+    log_reg.fit(X_resampled, y_resampled)
+    y_pred_log_reg_smote = log_reg.predict(X_test)
+
+    # Train Random Forest
+    rf_model.fit(X_resampled, y_resampled)
+    y_pred_rf_smote = rf_model.predict(X_test)
+
+    # Calculate metrics
+    metrics_log_reg_smote.append([
+        accuracy_score(y_test, y_pred_log_reg_smote),
+        precision_score(y_test, y_pred_log_reg_smote),
+        recall_score(y_test, y_pred_log_reg_smote),
+        f1_score(y_test, y_pred_log_reg_smote),
+        roc_auc_score(y_test, log_reg.predict_proba(X_test)[:, 1])
+    ])
+
+    metrics_random_forest_smote.append([
+        accuracy_score(y_test, y_pred_rf_smote),
+        precision_score(y_test, y_pred_rf_smote),
+        recall_score(y_test, y_pred_rf_smote),
+        f1_score(y_test, y_pred_rf_smote),
+        roc_auc_score(y_test, rf_model.predict_proba(X_test)[:, 1])
+    ])
+
+# Average metrics
+metrics_log_reg_smote = np.mean(metrics_log_reg_smote, axis=0)
+metrics_random_forest_smote = np.mean(metrics_random_forest_smote, axis=0)
+
+print("Logistic Regression Metrics (after SMOTE):")
+print(f"Accuracy: {metrics_log_reg_smote[0]:.2f}, Precision: {metrics_log_reg_smote[1]:.2f}, Recall: {metrics_log_reg_smote[2]:.2f}, F1 Score: {metrics_log_reg_smote[3]:.2f}, AUC-ROC: {metrics_log_reg_smote[4]:.2f}")
+
+print("Random Forest Metrics (after SMOTE):")
+print(f"Accuracy: {metrics_random_forest_smote[0]:.2f}, Precision: {metrics_random_forest_smote[1]:.2f}, Recall: {metrics_random_forest_smote[2]:.2f}, F1 Score: {metrics_random_forest_smote[3]:.2f}, AUC-ROC: {metrics_random_forest_smote[4]:.2f}")
+Step 4: Feature Selection Using Recursive Feature Elimination (RFE)
+Use RFE to select the top features.
+
+python
+Copy code
+# RFE for Logistic Regression
+rfe = RFE(estimator=LogisticRegression(solver='liblinear'), n_features_to_select=10)
+rfe.fit(X, y)
+
+# Selected features
+selected_features = X.columns[rfe.support_]
+print("Selected Features:", selected_features.tolist())
+
+# Retrain models with selected features
+X_selected = X[selected_features]
+
+# Stratified K-Fold Cross-Validation with selected features
+metrics_log_reg_rfe = []
+metrics_random_forest_rfe = []
+
+for train_index, test_index in kf.split(X_selected, y):
+    X_train, X_test = X_selected.iloc[train_index], X_selected.iloc[test_index]
+    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+
+    # Train Logistic Regression
+    log_reg.fit(X_train, y_train)
+    y_pred_log_reg_rfe = log_reg.predict(X_test)
+
+    # Train Random Forest
+    rf_model.fit(X_train, y_train)
+    y_pred_rf_rfe = rf_model.predict(X_test)
+
+    # Calculate metrics
+    metrics_log_reg_rfe.append([
+        accuracy_score(y_test, y_pred_log_reg_rfe),
+        precision_score(y_test, y_pred_log_reg_rfe),
+        recall_score(y_test, y_pred_log_reg_rfe),
+        f1_score(y_test, y_pred_log_reg_rfe),
+        roc_auc_score(y_test, log_reg.predict_proba(X_test)[:, 1])
+    ])
+
+    metrics_random_forest_rfe.append([
+        accuracy_score(y_test, y_pred_rf_rfe),
+        precision_score(y_test, y_pred_rf_rfe),
+        recall_score(y_test, y_pred_rf_rfe),
+        f1_score(y_test, y_pred_rf_rfe),
+        roc_auc_score(y_test, rf_model.predict_proba(X_test)[:, 1])
+    ])
+
+# Average metrics
+metrics_log_reg_rfe = np.mean(metrics_log_reg_rfe, axis=0)
+metrics_random_forest_rfe = np.mean(metrics_random_forest_rfe, axis=0)
+
+print("Logistic Regression Metrics (with RFE):")
+print(f"Accuracy: {metrics_log_reg_rfe[0]:.2f}, Precision: {metrics_log_reg_rfe[1]:.2f}, Recall: {metrics_log_reg_rfe[2]:.2f}, F1 Score: {metrics_log_reg_rfe[3]:.2f}, AUC-ROC: {metrics_log_reg_rfe[4]:.2f}")
+
+print("Random Forest Metrics (with RFE):")
+print(f"Accuracy: {metrics_random_forest_rfe[0]:.2f}, Precision: {metrics_random_forest_rfe[1]:.2f}, Recall: {metrics_random_forest_rfe[2]:.2f}, F1 Score: {metrics_random_forest
+
+
+
+
+
+
+
+
+
+
+
+
+
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Ensemble Learning ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+
+Question 3: Ensemble Learning (Advanced)
+You are tasked with improving the performance of a predictive model using ensemble learning techniques. The dataset consists of 10,000 records with 15 features, and the goal is to classify customer purchase behavior (0 = no purchase, 1 = purchase).
+
+Task:
+
+Ensemble Method Selection:
+Apply the following ensemble methods to your dataset:
+Bagging: Train a Random Forest model using bootstrapped samples.
+Boosting: Train an AdaBoost and XGBoost model with appropriate hyperparameters.
+Model Comparison:
+Evaluate the performance of each ensemble method on the same training and testing sets using accuracy, precision, recall, and AUC-ROC curves.
+Discuss the trade-offs between bias and variance in each method. Identify which ensemble method is more prone to overfitting and explain why.
+Voting Classifier:
+Combine Random Forest, AdaBoost, and XGBoost in a Voting Classifier. Use both soft and hard voting to predict customer purchases.
+Compare the results of soft voting vs. hard voting and analyze the performance difference.
+Determine the optimal weights for each classifier in the Voting Classifier to maximize accuracy.
+Critical Analysis:
+Analyze the performance of individual models (Random Forest, AdaBoost, XGBoost) versus the Voting Classifier. Discuss which combination of models and voting type performs the best in terms of accuracy, overfitting, and training time.
+Deliverables:
+
+Code for implementing Random Forest, AdaBoost, XGBoost, and Voting Classifier.
+Comparison of training and testing accuracies, confusion matrices, and AUC-ROC curves for all models.
+A critical discussion of the bias-variance tradeoff and the effectiveness of ensemble learning in this problem.
+
+
+
+
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, VotingClassifier
+from xgboost import XGBClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, confusion_matrix, roc_curve
+import matplotlib.pyplot as plt
+
+# Load your dataset
+data = pd.read_csv('your_dataset.csv')
+
+# Define features and target variable
+X = data.drop('target', axis=1)
+y = data['target']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=42)
+Step 2: Bagging with Random Forest
+Train a Random Forest model using bootstrapped samples.
+
+python
+Copy code
+# Train Random Forest
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model.fit(X_train, y_train)
+
+# Predictions
+y_pred_rf = rf_model.predict(X_test)
+
+# Performance Metrics
+rf_accuracy = accuracy_score(y_test, y_pred_rf)
+rf_precision = precision_score(y_test, y_pred_rf)
+rf_recall = recall_score(y_test, y_pred_rf)
+rf_roc_auc = roc_auc_score(y_test, rf_model.predict_proba(X_test)[:, 1])
+
+print("Random Forest Metrics:")
+print(f"Accuracy: {rf_accuracy:.2f}, Precision: {rf_precision:.2f}, Recall: {rf_recall:.2f}, AUC-ROC: {rf_roc_auc:.2f}")
+Step 3: Boosting with AdaBoost and XGBoost
+Train an AdaBoost and XGBoost model.
+
+python
+Copy code
+# Train AdaBoost
+ada_model = AdaBoostClassifier(n_estimators=100, random_state=42)
+ada_model.fit(X_train, y_train)
+
+# Predictions
+y_pred_ada = ada_model.predict(X_test)
+
+# Performance Metrics for AdaBoost
+ada_accuracy = accuracy_score(y_test, y_pred_ada)
+ada_precision = precision_score(y_test, y_pred_ada)
+ada_recall = recall_score(y_test, y_pred_ada)
+ada_roc_auc = roc_auc_score(y_test, ada_model.predict_proba(X_test)[:, 1])
+
+print("\nAdaBoost Metrics:")
+print(f"Accuracy: {ada_accuracy:.2f}, Precision: {ada_precision:.2f}, Recall: {ada_recall:.2f}, AUC-ROC: {ada_roc_auc:.2f}")
+
+# Train XGBoost
+xgb_model = XGBClassifier(use_label_encoder=False, eval_metric='logloss', n_estimators=100, random_state=42)
+xgb_model.fit(X_train, y_train)
+
+# Predictions
+y_pred_xgb = xgb_model.predict(X_test)
+
+# Performance Metrics for XGBoost
+xgb_accuracy = accuracy_score(y_test, y_pred_xgb)
+xgb_precision = precision_score(y_test, y_pred_xgb)
+xgb_recall = recall_score(y_test, y_pred_xgb)
+xgb_roc_auc = roc_auc_score(y_test, xgb_model.predict_proba(X_test)[:, 1])
+
+print("\nXGBoost Metrics:")
+print(f"Accuracy: {xgb_accuracy:.2f}, Precision: {xgb_precision:.2f}, Recall: {xgb_recall:.2f}, AUC-ROC: {xgb_roc_auc:.2f}")
+Step 4: Compare Models and Discuss Bias-Variance Trade-off
+Trade-offs:
+Random Forest generally has low bias and moderate variance, making it robust against overfitting due to averaging predictions from multiple trees.
+AdaBoost can reduce bias effectively but is sensitive to noisy data, potentially leading to higher variance and overfitting.
+XGBoost is a powerful booster that can optimize bias and variance through hyperparameter tuning, but it can also overfit if not properly regularized.
+Step 5: Voting Classifier
+Combine Random Forest, AdaBoost, and XGBoost in a Voting Classifier.
+
+python
+Copy code
+# Soft Voting Classifier
+voting_clf_soft = VotingClassifier(estimators=[
+    ('rf', rf_model), ('ada', ada_model), ('xgb', xgb_model)],
+    voting='soft')
+
+voting_clf_soft.fit(X_train, y_train)
+y_pred_voting_soft = voting_clf_soft.predict(X_test)
+
+# Performance Metrics for Soft Voting
+voting_soft_accuracy = accuracy_score(y_test, y_pred_voting_soft)
+voting_soft_precision = precision_score(y_test, y_pred_voting_soft)
+voting_soft_recall = recall_score(y_test, y_pred_voting_soft)
+voting_soft_roc_auc = roc_auc_score(y_test, voting_clf_soft.predict_proba(X_test)[:, 1])
+
+print("\nSoft Voting Classifier Metrics:")
+print(f"Accuracy: {voting_soft_accuracy:.2f}, Precision: {voting_soft_precision:.2f}, Recall: {voting_soft_recall:.2f}, AUC-ROC: {voting_soft_roc_auc:.2f}")
+
+# Hard Voting Classifier
+voting_clf_hard = VotingClassifier(estimators=[
+    ('rf', rf_model), ('ada', ada_model), ('xgb', xgb_model)],
+    voting='hard')
+
+voting_clf_hard.fit(X_train, y_train)
+y_pred_voting_hard = voting_clf_hard.predict(X_test)
+
+# Performance Metrics for Hard Voting
+voting_hard_accuracy = accuracy_score(y_test, y_pred_voting_hard)
+voting_hard_precision = precision_score(y_test, y_pred_voting_hard)
+voting_hard_recall = recall_score(y_test, y_pred_voting_hard)
+voting_hard_roc_auc = roc_auc_score(y_test, voting_clf_hard.predict_proba(X_test)[:, 1])
+
+print("\nHard Voting Classifier Metrics:")
+print(f"Accuracy: {voting_hard_accuracy:.2f}, Precision: {voting_hard_precision:.2f}, Recall: {voting_hard_recall:.2f}, AUC-ROC: {voting_hard_roc_auc:.2f}")
+Step 6: Optimal Weights for Voting Classifier
+You can use a Grid Search or manual tuning to find the optimal weights for the Voting Classifier. Here’s a basic example of how to adjust weights:
+
+python
+Copy code
+# Voting Classifier with weights
+voting_clf_weighted = VotingClassifier(estimators=[
+    ('rf', rf_model), ('ada', ada_model), ('xgb', xgb_model)],
+    voting='soft', weights=[2, 1, 2])  # Adjust weights based on intuition or results
+
+voting_clf_weighted.fit(X_train, y_train)
+y_pred_voting_weighted = voting_clf_weighted.predict(X_test)
+
+# Performance Metrics for Weighted Voting
+voting_weighted_accuracy = accuracy_score(y_test, y_pred_voting_weighted)
+voting_weighted_precision = precision_score(y_test, y_pred_voting_weighted)
+voting_weighted_recall = recall_score(y_test, y_pred_voting_weighted)
+voting_weighted_roc_auc = roc_auc_score(y_test, voting_clf_weighted.predict_proba(X_test)[:, 1])
+
+print("\nWeighted Voting Classifier Metrics:")
+print(f"Accuracy: {voting_weighted_accuracy:.2f}, Precision: {voting_weighted_precision:.2f}, Recall: {voting_weighted_recall:.2f}, AUC-ROC: {voting_weighted_roc_auc:.2f}")
+Step 7: Critical Analysis
+Performance Comparison: Evaluate which ensemble method performed the best based on accuracy, precision, recall, and AUC-ROC.
+Overfitting: Discuss which method is more prone to overfitting. Generally, AdaBoost and XGBoost can overfit more easily due to their focus on learning hard examples, while Random Forest typically provides better regularization through bagging.
+Training Time: Discuss the computational efficiency of each method. Generally, boosting methods (AdaBoost and XGBoost) can take longer to train than bagging methods (Random Forest).
+Final Thoughts
+Ensemble methods, particularly when combined through techniques like Voting Classifiers, can significantly improve predictive performance. The selection of models and their configurations should be guided by the specific characteristics of the dataset and the problem at hand. Each ensemble method has its strengths and weaknesses, and the choice should reflect the balance between bias, variance, and computational resources.
+
+You can plot ROC curves for all models to visualize performance differences if desired. Here’s how to plot ROC curves:
+
+python
+Copy code
+# ROC Curve Plotting
+def plot_roc_curve(fpr, tpr, label):
+    plt.plot(fpr, tpr, label=label)
+    
+# Compute ROC Curve
+for model, name in zip([rf_model, ada_model, xgb_model, voting_clf_soft, voting_clf_hard, voting_clf_weighted],
+                       ['Random Forest', 'AdaBoost', 'XGBoost', 'Soft Voting',
+
+
+
+
+
+
+
+
+
+
+********************************************************************************************************************************************************
+********************************************************************************************************************************************************
+
+
+You are tasked with building a robust model to predict the likelihood of loan default using a dataset of loan applicants, including features like credit score, income, loan amount, and loan term.
+
+Task:
+
+Model Training Using Bagging and Boosting:
+Train a Random Forest model (Bagging) and an AdaBoost model (Boosting) on the dataset. Compare their performance in terms of accuracy, precision, recall, and training time.
+Hyperparameter Tuning and Bias-Variance Tradeoff:
+Fine-tune hyperparameters (e.g., number of trees, learning rate) for both models. Explain how adjusting these hyperparameters affects the bias-variance tradeoff.
+Stacking and Blending:
+Build a Stacked Model that combines the predictions of Random Forest, AdaBoost, and a Logistic Regression model. Compare the performance of stacking against the individual models.
+Voting Classifier:
+Implement a Voting Classifier using soft and hard voting. Evaluate the impact of each voting method on model performance and discuss under what conditions soft voting works better than hard voting.
+Deliverables:
+
+Python code for Random Forest, AdaBoost, Stacking, and Voting Classifier.
+Detailed comparison of the models using performance metrics (confusion matrix, AUC, etc.).
+A written analysis of the bias-variance tradeoff in bagging vs. boosting models.
+
+
+
+
+
+
+
+Now, let's start by importing the libraries and loading your dataset.
+
+python
+Copy code
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, VotingClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score, confusion_matrix
+import time
+import matplotlib.pyplot as plt
+
+# Load your dataset
+data = pd.read_csv('your_dataset.csv')
+
+# Define features and target variable
+X = data.drop('target', axis=1)
+y = data['target']
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=42)
+Step 2: Train Bagging and Boosting Models
+Random Forest (Bagging)
+python
+Copy code
+# Train Random Forest
+start_time = time.time()
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model.fit(X_train, y_train)
+rf_training_time = time.time() - start_time
+
+# Predictions
+y_pred_rf = rf_model.predict(X_test)
+
+# Performance Metrics
+rf_accuracy = accuracy_score(y_test, y_pred_rf)
+rf_precision = precision_score(y_test, y_pred_rf)
+rf_recall = recall_score(y_test, y_pred_rf)
+rf_roc_auc = roc_auc_score(y_test, rf_model.predict_proba(X_test)[:, 1])
+
+print("Random Forest Metrics:")
+print(f"Accuracy: {rf_accuracy:.2f}, Precision: {rf_precision:.2f}, Recall: {rf_recall:.2f}, AUC-ROC: {rf_roc_auc:.2f}, Training Time: {rf_training_time:.2f} seconds")
+AdaBoost (Boosting)
+python
+Copy code
+# Train AdaBoost
+start_time = time.time()
+ada_model = AdaBoostClassifier(n_estimators=100, random_state=42)
+ada_model.fit(X_train, y_train)
+ada_training_time = time.time() - start_time
+
+# Predictions
+y_pred_ada = ada_model.predict(X_test)
+
+# Performance Metrics
+ada_accuracy = accuracy_score(y_test, y_pred_ada)
+ada_precision = precision_score(y_test, y_pred_ada)
+ada_recall = recall_score(y_test, y_pred_ada)
+ada_roc_auc = roc_auc_score(y_test, ada_model.predict_proba(X_test)[:, 1])
+
+print("\nAdaBoost Metrics:")
+print(f"Accuracy: {ada_accuracy:.2f}, Precision: {ada_precision:.2f}, Recall: {ada_recall:.2f}, AUC-ROC: {ada_roc_auc:.2f}, Training Time: {ada_training_time:.2f} seconds")
+Step 3: Hyperparameter Tuning
+Using Grid Search to fine-tune hyperparameters for both models.
+
+python
+Copy code
+# Hyperparameter tuning for Random Forest
+rf_param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [None, 10, 20],
+    'min_samples_split': [2, 5]
+}
+
+rf_grid_search = GridSearchCV(RandomForestClassifier(random_state=42), rf_param_grid, cv=3)
+rf_grid_search.fit(X_train, y_train)
+
+print("\nBest Random Forest Parameters:", rf_grid_search.best_params_)
+
+# Hyperparameter tuning for AdaBoost
+ada_param_grid = {
+    'n_estimators': [50, 100, 200],
+    'learning_rate': [0.01, 0.1, 1]
+}
+
+ada_grid_search = GridSearchCV(AdaBoostClassifier(random_state=42), ada_param_grid, cv=3)
+ada_grid_search.fit(X_train, y_train)
+
+print("Best AdaBoost Parameters:", ada_grid_search.best_params_)
+Step 4: Bias-Variance Tradeoff Analysis
+Random Forest (Bagging):
+
+Tends to have low bias and moderate variance. It generalizes well due to averaging multiple trees, reducing the risk of overfitting.
+AdaBoost (Boosting):
+
+Tends to have low bias and high variance. By focusing on hard-to-classify instances, it can overfit the training data, especially with noisy datasets.
+Step 5: Stacking Models
+Now, let's build a stacked model combining Random Forest, AdaBoost, and Logistic Regression.
+
+python
+Copy code
+# Stacked Model
+class StackingClassifier:
+    def __init__(self, base_models, meta_model):
+        self.base_models = base_models
+        self.meta_model = meta_model
+
+    def fit(self, X, y):
+        self.base_model_preds = np.column_stack([model.fit(X, y).predict(X) for model in self.base_models])
+
+        # Fit meta model on base model predictions
+        self.meta_model.fit(self.base_model_preds, y)
+
+    def predict(self, X):
+        base_model_preds = np.column_stack([model.predict(X) for model in self.base_models])
+        return self.meta_model.predict(base_model_preds)
+
+# Create base models and meta model
+base_models = [rf_model, ada_model]
+meta_model = LogisticRegression()
+
+stacked_model = StackingClassifier(base_models, meta_model)
+stacked_model.fit(X_train, y_train)
+
+# Predictions
+y_pred_stacked = stacked_model.predict(X_test)
+
+# Performance Metrics
+stacked_accuracy = accuracy_score(y_test, y_pred_stacked)
+stacked_precision = precision_score(y_test, y_pred_stacked)
+stacked_recall = recall_score(y_test, y_pred_stacked)
+stacked_roc_auc = roc_auc_score(y_test, stacked_model.meta_model.predict_proba(np.column_stack([model.predict(X_test) for model in base_models]))[:, 1])
+
+print("\nStacked Model Metrics:")
+print(f"Accuracy: {stacked_accuracy:.2f}, Precision: {stacked_precision:.2f}, Recall: {stacked_recall:.2f}, AUC-ROC: {stacked_roc_auc:.2f}")
+Step 6: Implement Voting Classifier
+Now let's create a Voting Classifier with both soft and hard voting.
+
+python
+Copy code
+# Voting Classifier
+voting_clf_soft = VotingClassifier(estimators=[
+    ('rf', rf_model), ('ada', ada_model), ('lr', LogisticRegression())
+], voting='soft')
+
+voting_clf_soft.fit(X_train, y_train)
+y_pred_voting_soft = voting_clf_soft.predict(X_test)
+
+# Performance Metrics for Soft Voting
+voting_soft_accuracy = accuracy_score(y_test, y_pred_voting_soft)
+voting_soft_precision = precision_score(y_test, y_pred_voting_soft)
+voting_soft_recall = recall_score(y_test, y_pred_voting_soft)
+voting_soft_roc_auc = roc_auc_score(y_test, voting_clf_soft.predict_proba(X_test)[:, 1])
+
+print("\nSoft Voting Classifier Metrics:")
+print(f"Accuracy: {voting_soft_accuracy:.2f}, Precision: {voting_soft_precision:.2f}, Recall: {voting_soft_recall:.2f}, AUC-ROC: {voting_soft_roc_auc:.2f}")
+
+# Hard Voting Classifier
+voting_clf_hard = VotingClassifier(estimators=[
+    ('rf', rf_model), ('ada', ada_model), ('lr', LogisticRegression())
+], voting='hard')
+
+voting_clf_hard.fit(X_train, y_train)
+y_pred_voting_hard = voting_clf_hard.predict(X_test)
+
+# Performance Metrics for Hard Voting
+voting_hard_accuracy = accuracy_score(y_test, y_pred_voting_hard)
+voting_hard_precision = precision_score(y_test, y_pred_voting_hard)
+voting_hard_recall = recall_score(y_test, y_pred_voting_hard)
+voting_hard_roc_auc = roc_auc_score(y_test, voting_clf_hard.predict_proba(X_test)[:, 1])
+
+print("\nHard Voting Classifier Metrics:")
+print(f"Accuracy: {voting_hard_accuracy:.2f}, Precision: {voting_hard_precision:.2f}, Recall: {voting_hard_recall:.2f}, AUC-ROC: {voting_hard_roc_auc:.2f}")
+Step 7: Detailed Comparison of Models
+You can summarize and compare all models using performance metrics like confusion matrices, AUC-ROC curves, etc.
+
+python
+Copy code
+# Confusion Matrices
+def plot_confusion_matrix(y_true, y_pred, title):
+    cm = confusion_matrix(y_true, y_pred)
+    plt.figure(figsize=(6, 4))
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(2)
+    plt.xticks(tick_marks, ['No', 'Yes'])
+    plt.yticks(tick_marks, ['No', 'Yes'])
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.show()
+
+plot_confusion_matrix(y_test, y_pred_rf, "Random Forest Confusion Matrix")
+plot_confusion_matrix(y_test, y_pred_ada, "AdaBoost Confusion Matrix")
+plot_confusion_matrix
+
+
+
+
+
+
+
+ou are given a dataset on housing prices that includes features such as house size, number of rooms, location, and age of the house. The task is to predict the price of the house using various ensemble learning techniques.
+
+Task:
+
+Model Training:
+
+Train a Random Forest and Gradient Boosting Machine (GBM) on the dataset. Evaluate the models using RMSE (Root Mean Squared Error) and R-squared on the testing set.
+Discuss the trade-offs between bias and variance for Random Forest and GBM.
+Bagging and Boosting:
+
+Apply Bagging using Random Forest and Boosting using XGBoost. Compare the performance of these two ensemble methods in terms of model accuracy, RMSE, and training time.
+Discuss the advantages and disadvantages of bagging vs. boosting for this regression problem.
+Stacking:
+
+Implement a Stacked Regressor using Random Forest, GBM, and a Linear Regression model. Compare the performance of the stacked model with the individual base models.
+Evaluate the impact of stacking on predictive performance and training time.
+Voting Regressor:
+
+Combine Random Forest, XGBoost, and Linear Regression using a Voting Regressor. Use both soft and hard voting methods and evaluate the difference in performance.
+Explain under what circumstances soft voting is expected to outperform hard voting and vice versa.
+Deliverables:
+
+Python code for Random Forest, GBM, XGBoost, Stacking, and Voting Regressors.
+Detailed comparison of model performance, including error metrics, bias-variance trade-offs, and voting strategies.
+
+
+
+
+
+
+
+
+
+
+***************************************************************************************************************************|\
+***************************************************************************************************************************
+
+
+
+
+
+Question 1: Implement KNN Algorithm from Scratch
+You are provided with a dataset containing several attributes related to different flowers. The goal is to implement the K-Nearest Neighbors (KNN) algorithm from scratch and classify the flowers into different categories based on their features.
+
+Steps to implement:
+
+Dataset Preparation:
+
+Load the Iris dataset (or any dataset with numerical features).
+Split the dataset into 80% training and 20% testing sets.
+KNN Algorithm:
+
+Implement the K-Nearest Neighbors (KNN) algorithm without using any built-in library.
+Use Euclidean distance to calculate the distance between the test point and all training points.
+Select the K nearest neighbors and classify the test point based on the majority label among the neighbors.
+Choose an appropriate K value (e.g., K = 3, 5, 7) and calculate the classification accuracy.
+Performance Metrics:
+
+Compute the accuracy of your KNN implementation.
+Create a confusion matrix to evaluate the performance of your classifier.
+Compare the accuracy with scikit-learn’s KNN implementation to verify your results.
+Bonus:
+
+Implement KNN with other distance metrics like Manhattan or Minkowski distance and compare the accuracy.
+
+
+
+
+
+
+
+
+KNN Implementation from Scratch
+python
+Copy code
+import numpy as np
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.neighbors import KNeighborsClassifier
+
+# Load the Iris dataset
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# Split the dataset into training and testing sets (80/20)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+class KNN:
+    def __init__(self, k=3):
+        self.k = k
+        
+    def fit(self, X, y):
+        self.X_train = X
+        self.y_train = y
+
+    def predict(self, X):
+        predictions = [self._predict(x) for x in X]
+        return np.array(predictions)
+
+    def _predict(self, x):
+        # Calculate distances
+        distances = np.linalg.norm(self.X_train - x, axis=1)
+        # Get the indices of the k nearest neighbors
+        k_indices = np.argsort(distances)[:self.k]
+        # Extract the labels of the k nearest neighbors
+        k_nearest_labels = [self.y_train[i] for i in k_indices]
+        # Return the most common class label
+        most_common = np.bincount(k_nearest_labels).argmax()
+        return most_common
+
+# Create KNN classifier
+k = 3
+knn = KNN(k)
+knn.fit(X_train, y_train)
+y_pred = knn.predict(X_test)
+
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Custom KNN accuracy: {accuracy:.2f}')
+
+# Create confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+print("Confusion Matrix:")
+print(conf_matrix)
+
+# Compare with scikit-learn's KNN implementation
+sklearn_knn = KNeighborsClassifier(n_neighbors=k)
+sklearn_knn.fit(X_train, y_train)
+sklearn_y_pred = sklearn_knn.predict(X_test)
+
+sklearn_accuracy = accuracy_score(y_test, sklearn_y_pred)
+print(f'Sci-kit Learn KNN accuracy: {sklearn_accuracy:.2f}')
+Bonus: Implementing Other Distance Metrics
+To implement KNN with different distance metrics like Manhattan or Minkowski, you can modify the _predict method as follows:
+
+python
+Copy code
+def _predict(self, x, metric='euclidean'):
+    if metric == 'euclidean':
+        distances = np.linalg.norm(self.X_train - x, axis=1)
+    elif metric == 'manhattan':
+        distances = np.sum(np.abs(self.X_train - x), axis=1)
+    elif metric == 'minkowski':
+        p = 3  # Example for p=3
+        distances = np.power(np.sum(np.abs(self.X_train - x) ** p, axis=1), 1/p)
+    else:
+        raise ValueError("Unknown metric")
+    
+    k_indices = np.argsort(distances)[:self.k]
+    k_nearest_labels = [self.y_train[i] for i in k_indices]
+    most_common = np.bincount(k_nearest_labels).argmax()
+    return most_common
+To Use Different Metrics
+You can call _predict with the desired metric:
+
+python
+Copy code
+y_pred_manhattan = knn.predict(X_test, metric='manhattan')
+manhattan_accuracy = accuracy_score(y_test, y_pred_manhattan)
+print(f'Custom KNN (Manhattan) accuracy: {manhattan_accuracy:.2f}')
+
+
+
+
+*******************************************************************************************************************************
+*******************************************************************************************************************************
+
+
+
+
+Question 2: Find the Root Node of a Decision Tree by Calculating Entropy and Information Gain
+You are given a small dataset containing four features: Age, Job Status, Own House, and Credit Rating, and a target variable indicating whether a person is eligible for a loan (Yes/No). Your task is to find the root node of the decision tree by calculating Entropy and Information Gain (IG) for each feature.
+
+Dataset (example):
+
+Age	Job Status	Own House	Credit Rating	Loan Eligible (Yes/No)
+25	Employed	Yes	Fair	Yes
+32	Unemployed	No	Excellent	No
+45	Employed	Yes	Fair	Yes
+22	Employed	No	Fair	No
+35	Unemployed	Yes	Excellent	No
+Steps to implement:
+
+Calculate Entropy:
+
+Calculate the entropy of the target variable Loan Eligible (Yes/No).
+Calculate Information Gain:
+
+For each feature (Age, Job Status, Own House, and Credit Rating), calculate the information gain using the following formula:
+𝐼
+𝐺
+(
+𝑇
+,
+𝑋
+)
+=
+𝐸
+𝑛
+𝑡
+𝑟
+𝑜
+𝑝
+𝑦
+(
+𝑇
+)
+−
+∑
+𝑣
+∈
+𝑉
+𝑎
+𝑙
+𝑢
+𝑒
+𝑠
+(
+𝑋
+)
+∣
+𝑇
+𝑣
+∣
+∣
+𝑇
+∣
+𝐸
+𝑛
+𝑡
+𝑟
+𝑜
+𝑝
+𝑦
+(
+𝑇
+𝑣
+)
+IG(T,X)=Entropy(T)− 
+v∈Values(X)
+∑
+​
+  
+∣T∣
+∣T 
+v
+​
+ ∣
+​
+ Entropy(T 
+v
+​
+ )
+where 
+𝑇
+T is the dataset, and 
+𝑋
+X is the feature.
+
+Determine the Root Node:
+
+The feature with the highest information gain will be selected as the root node of the decision tree.
+Verify Results:
+
+Manually verify the calculations for at least one feature and explain why that feature becomes the root node.
+Bonus:
+
+Extend the decision tree by calculating the next best split for one of the remaining features and provide a graphical representation of the decision tree.
+
+
+
+
+
+import numpy as np
+import pandas as pd
+from math import log2
+
+# Sample dataset
+data = {
+    'Age': ['<30', '<30', '31-40', '>40', '>40', '>40', '31-40', '<30', '<30', '>40', '<30', '31-40', '31-40', '>40'],
+    'Job_Status': ['Employed', 'Unemployed', 'Employed', 'Employed', 'Unemployed', 'Unemployed', 'Employed', 'Employed', 'Unemployed', 'Employed', 'Employed', 'Employed', 'Unemployed', 'Unemployed'],
+    'Own_House': ['No', 'No', 'Yes', 'Yes', 'No', 'No', 'No', 'No', 'No', 'Yes', 'No', 'Yes', 'Yes', 'No'],
+    'Credit_Rating': ['Fair', 'Excellent', 'Fair', 'Fair', 'Fair', 'Excellent', 'Excellent', 'Fair', 'Fair', 'Fair', 'Excellent', 'Excellent', 'Fair', 'Excellent'],
+    'Loan_Eligible': ['No', 'No', 'Yes', 'Yes', 'No', 'No', 'Yes', 'No', 'Yes', 'Yes', 'Yes', 'Yes', 'Yes', 'No']
+}
+
+df = pd.DataFrame(data)
+
+# Function to calculate entropy
+def entropy(target_col):
+    elements, counts = np.unique(target_col, return_counts=True)
+    entropy_val = np.sum([(-counts[i] / np.sum(counts)) * log2(counts[i] / np.sum(counts)) for i in range(len(elements))])
+    return entropy_val
+
+# Function to calculate Information Gain
+def info_gain(data, split_attribute_name, target_name="Loan_Eligible"):
+    # Calculate total entropy for the target feature
+    total_entropy = entropy(data[target_name])
+    
+    # Values and counts for the split attribute
+    vals, counts = np.unique(data[split_attribute_name], return_counts=True)
+    
+    # Calculate weighted entropy for the split attribute
+    weighted_entropy = np.sum([(counts[i] / np.sum(counts)) * entropy(data.where(data[split_attribute_name] == vals[i]).dropna()[target_name]) for i in range(len(vals))])
+    
+    # Information Gain
+    info_gain_value = total_entropy - weighted_entropy
+    return info_gain_value
+
+# Calculate entropy for the target feature
+print(f"Entropy of Loan_Eligible: {entropy(df['Loan_Eligible']):.4f}")
+
+# Calculate Information Gain for each feature
+for col in df.columns[:-1]:
+    ig = info_gain(df, col)
+    print(f"Information Gain for {col}: {ig:.4f}")
+
+# Root node will be the feature with the highest Information Gain
+
+
+((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((LABS)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+
+
+
+
+
+******************************************************LAB # 1*****************************************************
+******************************************************************************************************************
+
+
+Create a dataset for representing 5 attributes that reflects the cause of a failure in examination (using an approach
+other than List to List and Dic to List.). Three most common attributes are (‘test_score’ , ‘writing skills’ , ‘reading
+skill’) decide two attributes by yourself. Fill at least 10 records. Come up with 2 more different idea to Create
+Data Frame
+
+
+import numpy as np
+import pandas as pd
+
+# Create a numpy array for 10 students with 5 attributes
+data = np.array([
+    [45, 6, 5, 75, 10],
+    [55, 7, 6, 85, 8],
+    [35, 5, 4, 65, 6],
+    [40, 6, 5, 50, 7],
+    [28, 3, 3, 40, 5],
+    [50, 7, 6, 80, 9],
+    [30, 4, 3, 60, 5],
+    [42, 5, 4, 70, 8],
+    [37, 6, 5, 55, 7],
+    [25, 3, 3, 35, 4]
+])
+
+# Define column names
+columns = ['test_score', 'writing_skills', 'reading_skill', 'attendance', 'study_hours']
+
+# Create the DataFrame using the numpy array
+df = pd.DataFrame(data, columns=columns)
+
+print(df)
+
+
+
+******************************************************************************* *******************************************
+**************************************************************************************************************************
+
+How to organize your code (Create a Text block for Importing Libraries in next cell import required library now
+Create a Heading for Data Preprocessing and the add a new cell for Data analysis. Create headings for each cell
+)
+A. Download the dataset from Here
+B. Import your dataset in Cola or Jupyter notebook
+C. Find out the unique category in target variable
+D. Find out the total numbers of columns in entire dataset, Check out the first 50 records of the dataset +
+bottom 30 records. Find its Information related to memory size , its dimension and Explore the size and
+dimension of your dataset
+E. Find the numbers of columns and total number of samples
+F. Find out the number of records for each unique category of target variable using numerical and graphical
+visualization.
+G. Extract sample from 550th sample to 900th sample and take these features Gender to Coughing of Blood
+using Loc Method and store in a new variable. Save this dataset in a new place and apply statistical analysis
+on these extracted records In statistical analysis you have to find out the mean , median , mode , standard
+deviation , minimum an maximum
+H. Extract sample of last 20 records , take 5 features in consideration from Shortness of Breath to Frequent
+cold column using iLoc Method Save this dataset in a new place and apply statistical analysis on these
+extracted records
+I. Extract sample of these records 110,220,360,440,656,778,202,889. Take all features in consideration.
+Check out the average of alcohol use in these records.
+
+
+
+
+
+
+
+
+# Importing Libraries
+# This block is where we import all the necessary Python libraries for data analysis.
+
+import pandas as pd      # For data manipulation and analysis
+import numpy as np       # For numerical computations
+import matplotlib.pyplot as plt  # For data visualization
+import seaborn as sns    # For statistical data visualization
+
+# Data Preprocessing
+# This section will handle loading the dataset and cleaning it if necessary.
+# Replace the 'your_dataset.csv' with the actual path to your dataset.
+
+# B. Import your dataset
+# Load the dataset into a pandas DataFrame. You need to provide the path to your dataset.
+df = pd.read_csv('your_dataset.csv')
+
+# C. Find out the unique category in the target variable
+# Assuming the target variable column name is 'Target'. Replace 'Target' with the actual name of your column.
+unique_categories = df['Target'].unique()
+print("Unique categories in target variable:", unique_categories)
+
+# Data Analysis
+# Now we begin analyzing the dataset as per the requested steps.
+
+# D. Find out the total number of columns, first 50 and last 30 records, memory usage, and dimensions of the dataset
+print("Total columns in dataset:", df.shape[1])  # Number of columns
+print("\nFirst 50 records:")
+print(df.head(50))   # First 50 records
+print("\nLast 30 records:")
+print(df.tail(30))   # Last 30 records
+print("\nDataset information:")
+df.info()   # Information including memory size and data types
+print("\nDataset shape (Rows, Columns):", df.shape)  # Shape of the dataset (rows, columns)
+
+# E. Find the number of columns and total number of samples (rows)
+print("Number of samples (rows):", df.shape[0])   # Number of rows (samples)
+print("Number of columns:", df.shape[1])          # Number of columns
+
+# F. Find out the number of records for each unique category in target variable
+category_counts = df['Target'].value_counts()
+print("\nCounts for each category in the target variable:")
+print(category_counts)
+
+# Plotting the distribution of target categories
+plt.figure(figsize=(8, 6))
+sns.countplot(x='Target', data=df)
+plt.title('Distribution of Target Categories')
+plt.show()
+
+# G. Extract samples from 550th to 900th, using loc, and select features from 'Gender' to 'Coughing of Blood'
+# Replace 'Gender' and 'Coughing of Blood' with the actual column names in your dataset
+extracted_data = df.loc[550:900, 'Gender':'Coughing of Blood']
+# Save the new dataset to a file
+extracted_data.to_csv('extracted_data_550_900.csv', index=False)
+
+# Apply statistical analysis on extracted data
+print("\nStatistical analysis of extracted data:")
+print("Mean:\n", extracted_data.mean())
+print("Median:\n", extracted_data.median())
+print("Mode:\n", extracted_data.mode().iloc[0])  # The mode may have multiple values, so we take the first mode
+print("Standard Deviation:\n", extracted_data.std())
+print("Minimum:\n", extracted_data.min())
+print("Maximum:\n", extracted_data.max())
+
+# H. Extract the last 20 records, select 5 features using iLoc, and save it for further analysis
+# Assuming 'Shortness of Breath' is at column index i and 'Frequent Cold' is at column index j
+last_20_features = df.iloc[-20:, i:j+1]  # Replace i and j with appropriate column indices
+last_20_features.to_csv('last_20_records.csv', index=False)
+
+# Apply statistical analysis on this subset
+print("\nStatistical analysis of last 20 records:")
+print("Mean:\n", last_20_features.mean())
+print("Median:\n", last_20_features.median())
+print("Mode:\n", last_20_features.mode().iloc[0])
+print("Standard Deviation:\n", last_20_features.std())
+print("Minimum:\n", last_20_features.min())
+print("Maximum:\n", last_20_features.max())
+
+# I. Extract specific sample rows (110, 220, etc.) and check the average alcohol use
+# Extracting the rows for specific sample IDs
+specific_samples = df.iloc[[110, 220, 360, 440, 656, 778, 202, 889]]
+print("\nSelected rows data:")
+print(specific_samples)
+
+# Assuming 'Alcohol Use' is the column name for the alcohol data; replace it with the correct name if needed
+average_alcohol_use = specific_samples['Alcohol Use'].mean()
+print("\nAverage alcohol use for the selected samples:", average_alcohol_use)
+
+
+
+
+
+***********************************************************************************************************************************
+***********************************************************************************************************************************
+
+
+A. Perform Graphical Visualization
+B. Display a correlation graph
+C. Display the distribution of Age and Frequent Cold
+D. Find out outliers in Obesity feature by using Graphical Visualization
+
+
+
+
+
+
+
+
+
+
+# A. Perform Graphical Visualization
+# Let's visualize some aspects of the dataset.
+# You can add more visualizations as needed based on your analysis goals.
+
+# 1. Distribution plot for numerical columns
+plt.figure(figsize=(12, 6))
+df.hist(bins=30, figsize=(15, 10), color='blue', edgecolor='black')
+plt.tight_layout()
+plt.show()
+
+# 2. Pairplot for exploring relationships between features
+# This will help in understanding pairwise relationships in the dataset.
+sns.pairplot(df)
+plt.show()
+
+# B. Display a correlation graph
+# We'll use a heatmap to display the correlation between features in the dataset.
+
+plt.figure(figsize=(12, 8))
+correlation_matrix = df.corr()  # Calculate correlation between numerical columns
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f', linewidths=0.5)
+plt.title('Correlation Matrix')
+plt.show()
+
+# C. Display the distribution of Age and Frequent Cold
+# We assume that 'Age' and 'Frequent Cold' are column names in your dataset.
+# Replace 'Age' and 'Frequent Cold' with the actual column names if needed.
+
+plt.figure(figsize=(10, 5))
+
+# Plotting the Age distribution
+plt.subplot(1, 2, 1)
+sns.histplot(df['Age'], kde=True, color='green')
+plt.title('Distribution of Age')
+
+# Plotting the Frequent Cold distribution
+plt.subplot(1, 2, 2)
+sns.histplot(df['Frequent Cold'], kde=True, color='purple')
+plt.title('Distribution of Frequent Cold')
+
+plt.tight_layout()
+plt.show()
+
+# D. Find out outliers in Obesity feature by using Graphical Visualization
+# We use a boxplot to visualize outliers in the 'Obesity' feature.
+# Replace 'Obesity' with the actual column name if necessary.
+
+plt.figure(figsize=(8, 6))
+sns.boxplot(x=df['Obesity'], color='orange')
+plt.title('Boxplot of Obesity (Detecting Outliers)')
+plt.show()
+
+# Additionally, you can use the IQR method to find outliers programmatically if needed.
+Q1 = df['Obesity'].quantile(0.25)
+Q3 = df['Obesity'].quantile(0.75)
+IQR = Q3 - Q1
+
+outliers = df[(df['Obesity'] < (Q1 - 1.5 * IQR)) | (df['Obesity'] > (Q3 + 1.5 * IQR))]
+print("Outliers in Obesity feature:\n", outliers[['Obesity']])
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&LAB # 2 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+
+
+
+A. Download the dataset and explore how to merge these dataset
+B. Combine dataset Lab2 D1A with Lab2 D1B in such a way that it doesn’t contain any
+duplicate column. The resultant dataset consist of these columns and the final shape will be
+
+C. Combine dataset Lab2 D1A with Lab2 D1C using merge method to extract similar records
+in a new Dataframe “comboAC” having 4221333 records
+
+
+
+
+# A. Download the dataset and explore how to merge these datasets
+# First, load the datasets Lab2_D1A, Lab2_D1B, and Lab2_D1C.
+# Replace 'your_dataset_path' with the actual path of the datasets you have.
+
+# Import the necessary libraries
+import pandas as pd
+
+# Load the datasets
+df_A = pd.read_csv('Lab2_D1A.csv')
+df_B = pd.read_csv('Lab2_D1B.csv')
+df_C = pd.read_csv('Lab2_D1C.csv')
+
+# Checking the first few rows of each dataset to understand their structure
+print("Dataset A (Lab2_D1A):\n", df_A.head())
+print("\nDataset B (Lab2_D1B):\n", df_B.head())
+print("\nDataset C (Lab2_D1C):\n", df_C.head())
+
+# Checking the shape (number of rows and columns) of each dataset
+print("\nShape of Dataset A:", df_A.shape)
+print("Shape of Dataset B:", df_B.shape)
+print("Shape of Dataset C:", df_C.shape)
+
+# Checking if any column names are duplicated between the datasets
+print("\nColumns in Dataset A:", df_A.columns)
+print("Columns in Dataset B:", df_B.columns)
+print("Columns in Dataset C:", df_C.columns)
+
+
+# B. Combine dataset Lab2 D1A with Lab2 D1B in such a way that it doesn’t contain any duplicate columns.
+# To avoid duplicate columns, we will use 'pd.concat' and remove the columns that might be duplicated.
+# Assuming you want to merge these datasets row-wise (i.e., stacking them), and drop duplicate columns.
+
+# Identifying duplicate columns in B that are already present in A
+common_columns = df_A.columns.intersection(df_B.columns)
+
+# Dropping the duplicate columns from B
+df_B_cleaned = df_B.drop(columns=common_columns)
+
+# Now, concatenating A and B horizontally (side by side), ensuring no duplicate columns
+combined_AB = pd.concat([df_A, df_B_cleaned], axis=1)
+
+# Checking the shape of the combined dataset and the columns
+print("\nShape of Combined Dataset A and B (without duplicate columns):", combined_AB.shape)
+print("\nColumns in Combined Dataset A and B:\n", combined_AB.columns)
+
+
+# C. Combine dataset Lab2 D1A with Lab2 D1C using merge method to extract similar records
+# Assuming that 'Lab2 D1A' and 'Lab2 D1C' share some common columns to merge on.
+# Replace 'key_column' with the actual column name(s) you want to merge on (this could be an ID or other shared feature).
+
+# Merge df_A with df_C to get similar records based on common columns (e.g., 'ID').
+comboAC = pd.merge(df_A, df_C, on='key_column')  # Replace 'key_column' with the actual common column name
+
+# Displaying the shape of the new DataFrame comboAC
+print("\nShape of comboAC (merged A and C):", comboAC.shape)
+
+# Ensuring that the comboAC dataframe has 4221333 records (as mentioned in your question)
+if comboAC.shape[0] == 4221333:
+    print("The 'comboAC' dataset has the correct number of records: 4221333")
+else:
+    print(f"The 'comboAC' dataset has {comboAC.shape[0]} records, which is different from the expected 4221333.")
+
+
+
+**********************************************************************************************************************************
+**********************************************************************************************************************************
+
+
+
+
+A. Customized you own dataset with the name “customizedData”, add at least one attribute that
+should be similar to Lab2 D1A, Lab2 D1B, Lab2 D1C dataset , now add 3 attributes of Size
+(small, ,medium, and high), cardinal direction ( North, South, East and West) , Timings (full
+time , part time) and add 2 attributes of your own choice, one attribute should be categorical
+and one should be continuous.
+B. Merge “customizedData” with Lab2 D1A, Lab2 D1B, Lab2 D1C and produce a resultand
+dataset with the name of “modifiedData” and explore/ analyze its number of records and
+features before and after merging with the technique of similar records joining.
+
+
+
+
+
+
+
+
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+
+# A. Customized dataset creation ("customizedData")
+# Creating a DataFrame with attributes that match the structure of Lab2 D1A, Lab2 D1B, Lab2 D1C
+# We will simulate this customized dataset with new columns for size, cardinal direction, timings, and custom attributes.
+
+# First, let's assume there is a common column called 'ID' shared between Lab2_D1A, Lab2_D1B, and Lab2_D1C
+# Adding the common 'ID' column for merging purposes
+data = {
+    'ID': np.arange(1, 101),  # IDs from 1 to 100
+    'Size': np.random.choice(['small', 'medium', 'high'], size=100),  # Size attribute
+    'Cardinal_Direction': np.random.choice(['North', 'South', 'East', 'West'], size=100),  # Cardinal direction
+    'Timings': np.random.choice(['full time', 'part time'], size=100),  # Timings attribute
+    # Two custom attributes: one categorical and one continuous
+    'Category_Attribute': np.random.choice(['Type_A', 'Type_B', 'Type_C'], size=100),  # Categorical
+    'Continuous_Attribute': np.random.uniform(0, 100, size=100)  # Continuous
+}
+
+# Creating the customizedData DataFrame
+customizedData = pd.DataFrame(data)
+
+# Display the first few rows of the customized dataset
+print("\nCustomized Dataset (customizedData):\n", customizedData.head())
+
+# Loading Lab2 D1A, D1B, D1C datasets (replace 'your_dataset_path' with the actual paths to your datasets)
+df_A = pd.read_csv('Lab2_D1A.csv')
+df_B = pd.read_csv('Lab2_D1B.csv')
+df_C = pd.read_csv('Lab2_D1C.csv')
+
+# B. Merge customizedData with Lab2 D1A, Lab2 D1B, and Lab2 D1C
+# To merge, we will use the common 'ID' column. Ensure this column exists in all datasets.
+
+# Step 1: Merging Lab2 D1A with the customized dataset
+merged_A_custom = pd.merge(df_A, customizedData, on='ID', how='inner')
+
+# Step 2: Merging Lab2 D1B with the result of the first merge (to avoid duplicate columns, we handle that if necessary)
+# Drop duplicate columns from df_B before merging
+common_columns_B = merged_A_custom.columns.intersection(df_B.columns)
+df_B_cleaned = df_B.drop(columns=common_columns_B, errors='ignore')
+merged_AB_custom = pd.concat([merged_A_custom, df_B_cleaned], axis=1)
+
+# Step 3: Merging Lab2 D1C with the result of the second merge
+merged_custom_data = pd.merge(merged_AB_custom, df_C, on='ID', how='inner')
+
+# Step 4: Finally, merge with the customizedData (if it hasn't already been merged fully)
+modifiedData = pd.merge(merged_custom_data, customizedData, on='ID', how='inner')
+
+# Exploring the number of records and features (columns) before and after merging
+
+# Shape of datasets before merging
+print("\nShape of Lab2 D1A:", df_A.shape)
+print("Shape of Lab2 D1B:", df_B.shape)
+print("Shape of Lab2 D1C:", df_C.shape)
+print("Shape of customizedData:", customizedData.shape)
+
+# Shape of the dataset after merging
+print("\nShape of modifiedData (after merging all datasets):", modifiedData.shape)
+
+# Displaying the first few rows of the modified dataset
+print("\nModified Dataset (modifiedData):\n", modifiedData.head())
+
+# Analyzing the final merged dataset (modifiedData)
+# Checking the number of records and features after merging
+print("\nNumber of records in the final merged dataset:", modifiedData.shape[0])
+print("Number of features in the final merged dataset:", modifiedData.shape[1])
+
+# Summarizing the modified dataset to explore further
+print("\nSummary statistics of continuous variables in the modified dataset:\n", modifiedData.describe())
+
+
+
+
+
+
+********************************************************************************************************************************************
+**********************************************************************************************************************************
+
+
+
+How to organize your code (Create a Text block for Importing Libraries in next cell import required
+library now Create a Heading for Data Preprocessing and the add a new cell for Data analysis. Create
+headings for each cell)
+A. Download the dataset from Here
+B. Import your dataset in Colab or Jupyter notebook
+C. Calculate the correlation between these variables,Var3,Var38,Var15,
+imp_op_var39_comer_ult1
+D. Check whether the data is linear or not and write a brief explanation what you have
+analyzed in text cell
+E. Check whether the data contain any missing record, if yes then perform imputation using an
+average method.
+F. In your dataset, you have some interesting variables. Think of multi-variable research
+questions that you can explore with these data and explore. You need to do at least 5
+explorations that include data visualizations, numerical summary.
+G. Find out the unique category in target variable and check whether your dataset is balanced or
+not.
+H. If dataset is not balanced, then handle your dataset and balance it using Up sampling
+I. Find out the total number of features and records and perform feature selection using Pearson
+Correlation having threshold equal to 65%.
+J. Make a copy of your dataset and perform feature selection other than Pearson and Variance
+threshold.
+
+
+
+
+
+
+
+
+
+# Importing Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.impute import SimpleImputer
+from sklearn.utils import resample
+from sklearn.feature_selection import SelectKBest, chi2
+
+# A. Download and Import the Dataset
+df = pd.read_csv('your_dataset.csv')
+
+# Displaying the first few rows and the shape of the dataset
+print("\nFirst few rows of the dataset:\n", df.head())
+print("\nShape of the dataset (rows, columns):", df.shape)
+
+# B. Calculate the correlation between Var3, Var38, Var15, imp_op_var39_comer_ult1
+selected_columns = ['Var3', 'Var38', 'Var15', 'imp_op_var39_comer_ult1']
+correlation_matrix = df[selected_columns].corr()
+print("\nCorrelation matrix of selected variables:\n", correlation_matrix)
+
+# C. Checking linearity by visualizing pairwise relationships between selected variables
+sns.pairplot(df[selected_columns])
+plt.title("Pairplot to check linearity")
+plt.show()
+
+# D. Checking for missing values and performing imputation with the average method if missing values are present
+missing_data = df.isnull().sum()
+print("\nMissing data in each column:\n", missing_data)
+
+# Impute missing values using the mean
+imputer = SimpleImputer(strategy='mean')
+df_imputed = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+print("\nAfter imputation, missing data check:\n", df_imputed.isnull().sum())
+
+# E. Exploratory Data Analysis (EDA)
+# 1. Distribution of Var38 and its relation to Var3
+plt.figure(figsize=(8, 6))
+sns.histplot(df_imputed['Var38'], kde=True, color='blue')
+plt.title('Distribution of Var38')
+plt.show()
+
+# Scatter plot to check relationship between Var38 and Var3
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x=df_imputed['Var3'], y=df_imputed['Var38'])
+plt.title('Var3 vs Var38')
+plt.show()
+
+# 2. Relation between Var15 and imp_op_var39_comer_ult1
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x=df_imputed['Var15'], y=df_imputed['imp_op_var39_comer_ult1'])
+plt.title('Var15 vs imp_op_var39_comer_ult1')
+plt.show()
+
+# 3. Distribution of target variable
+plt.figure(figsize=(8, 6))
+sns.countplot(x='target_variable', data=df_imputed)
+plt.title('Distribution of Target Variable')
+plt.show()
+
+# 4. Correlation heatmap of the dataset
+plt.figure(figsize=(10, 8))
+sns.heatmap(df_imputed.corr(), annot=True, cmap='coolwarm')
+plt.title('Correlation Matrix of the Dataset')
+plt.show()
+
+# F. Check if the target variable is balanced
+target_counts = df_imputed['target_variable'].value_counts()
+print("\nCounts of each category in the target variable:\n", target_counts)
+
+# If the dataset is imbalanced, perform up-sampling
+majority_class = df_imputed[df_imputed['target_variable'] == target_counts.idxmax()]
+minority_class = df_imputed[df_imputed['target_variable'] == target_counts.idxmin()]
+
+# Upsample the minority class
+minority_upsampled = resample(minority_class, 
+                              replace=True,  # Sample with replacement
+                              n_samples=len(majority_class),  # Match majority class
+                              random_state=42)
+
+# Combine the majority and upsampled minority class to create a balanced dataset
+df_balanced = pd.concat([majority_class, minority_upsampled])
+print("\nAfter up-sampling, target variable counts:\n", df_balanced['target_variable'].value_counts())
+
+# G. Perform Feature Selection using Pearson Correlation with a threshold of 65%
+correlation_matrix = df_balanced.corr()
+
+# Select features with correlation greater than 0.65 with the target variable
+high_correlation_features = correlation_matrix.index[abs(correlation_matrix["target_variable"]) > 0.65]
+print("\nFeatures with Pearson correlation > 65%:\n", high_correlation_features)
+
+# H. Perform feature selection using Chi-Square
+X = df_balanced.drop('target_variable', axis=1)
+y = df_balanced['target_variable']
+
+# Perform Chi-Square feature selection (selecting top 10 features)
+chi2_selector = SelectKBest(chi2, k=10)
+X_kbest = chi2_selector.fit_transform(X, y)
+print("\nTop 10 features selected using Chi-Square:\n", chi2_selector.get_support(indices=True))
+
+
+
+
+***********************************************************************************************************************
+***********************************************************************************************************************
+
+
+
+
+A. Create a survey form (ask for the approval in order to avoid duplicate content) , ask some
+questions , Make sure to choose your question wisely, your attributes should reflect more to
+your problem statement. User have to answer atleast 5 questions and the remaining one will
+be depend on user, whether to answer or not.
+B. The questionnaire will contains at least 10 questions and you have to collect dataset from
+minimum 100 individuals
+C. After collecting dataset, Perform some Statistical analysis over it, Do some Graphical
+Visualization, Check whether the dataset you have collected is balanced or not.
+D. Perform Data wrangling, If the dataset contain any missing records try to handle these
+missing values wisely.
+E. If you found your dataset is not balanced then choose a technique other than smote or
+NearMiss
+F. Perform feature selection technique other than Variance Threshold and Pearson correlation
+and explain in a text cell its working.
+G. If the dataset contain any categorical feature then encode it using Dummy Encoding, and
+explain the difference between dummy encoding and one hot encoding
+H. Check whether your dataset contain any duplicate records, if it does, then handle these records
+with atleast 2 techniques.
+
+
+
+
+
+# Importing Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.impute import SimpleImputer
+from sklearn.utils import resample
+from sklearn.feature_selection import mutual_info_classif
+
+# A. Load the Survey Dataset
+df = pd.read_csv('survey_responses.csv')  # Replace with your actual dataset path
+print("\nFirst few rows of the dataset:\n", df.head())
+
+# B. Check the shape and some basic information
+print("\nShape of the dataset (rows, columns):", df.shape)
+print("\nData types of each column:\n", df.dtypes)
+
+# C. Statistical Analysis & Visualization
+# Summary statistics for numerical columns
+print(df.describe())
+
+# Employment Type Distribution
+plt.figure(figsize=(8,6))
+df['Employment Type'].value_counts().plot.pie(autopct='%1.1f%%', startangle=90, colors=['skyblue', 'lightgreen', 'pink'])
+plt.title('Employment Type Distribution')
+plt.ylabel('')
+plt.show()
+
+# Age Distribution
+plt.figure(figsize=(8,6))
+sns.histplot(df['Age'], bins=5, kde=True)
+plt.title('Age Distribution')
+plt.show()
+
+# D. Handle Missing Values
+# Checking for missing values
+missing_data = df.isnull().sum()
+print("\nMissing data in each column:\n", missing_data)
+
+# Impute missing values: For numerical, use mean; for categorical, use mode
+imputer = SimpleImputer(strategy='mean')
+df[df.select_dtypes(include=[np.number]).columns] = imputer.fit_transform(df.select_dtypes(include=[np.number]))
+
+for col in df.select_dtypes(include=['object']).columns:
+    df[col].fillna(df[col].mode()[0], inplace=True)
+
+print("\nAfter handling missing values:\n", df.isnull().sum())
+
+# E. Balancing the Dataset
+# Checking Employment Type balance
+print("\nEmployment Type Distribution:\n", df['Employment Type'].value_counts())
+
+# Down-sampling the majority class (Full-time)
+majority_class = df[df['Employment Type'] == 'Full-time']
+minority_class = df[df['Employment Type'] != 'Full-time']
+majority_downsampled = majority_class.sample(len(minority_class), random_state=42)
+df_balanced = pd.concat([majority_downsampled, minority_class])
+print("\nBalanced Employment Type Distribution:\n", df_balanced['Employment Type'].value_counts())
+
+# F. Feature Selection using Mutual Information
+X = df_balanced.drop('Employment Type', axis=1)  # Features
+y = df_balanced['Employment Type']  # Target
+mi_scores = mutual_info_classif(X.select_dtypes(include=[np.number]), y)  # Use numerical columns for MI
+mi_scores_series = pd.Series(mi_scores, index=X.select_dtypes(include=[np.number]).columns).sort_values(ascending=False)
+print("\nMutual Information Scores for features:\n", mi_scores_series)
+
+# G. Dummy Encoding for Categorical Features
+df_encoded = pd.get_dummies(df_balanced, drop_first=True)
+print("\nFirst few rows of the dataset after dummy encoding:\n", df_encoded.head())
+
+# Explanation: Dummy encoding creates n-1 columns from n categories, avoiding multicollinearity, while One-Hot encoding creates n columns for n categories.
+
+# H. Handling Duplicate Records
+duplicate_records = df[df.duplicated()]
+print("\nNumber of duplicate records found:", duplicate_records.shape[0])
+
+# Technique 1: Remove duplicates
+df_dedup = df.drop_duplicates()
+
+# Technique 2: Retain first duplicate, flag the rest
+df['is_duplicate'] = df.duplicated(keep='first')
+print("\nFlagging duplicates:\n", df['is_duplicate'].value_counts())
+
+
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& LAB 3 *+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+
+
+
+TASK 1:
+Occupancy dataset contains four attributes i-e "Humidity, Light, CO2 and Humidity ratio".
+• Apply KNN to find if occupancy is possible or not (0 or 1) based on "Humidity,
+Light and Humidity Ratio" only. Train on "Occupancy_train.txt" and Test on
+"Occupancy_test.txt". You need to do thefollowing then :
+• Run this KNN Algorithm for n_neighbors (K) from 1 to 10. You will get 10 different
+accuracies.Print all the accuracies. Then print the highest accuracy and also the
+value of K at which you got the highest accuracy.
+
+
+
+
+# Import necessary libraries
+import pandas as pd  # For data handling
+from sklearn.model_selection import train_test_split  # To split data into training and testing
+from sklearn.neighbors import KNeighborsClassifier  # KNN algorithm
+from sklearn.metrics import accuracy_score  # To calculate accuracy
+
+# Load the datasets
+train_data = pd.read_csv('Occupancy_train.txt', delimiter='\t')  # Adjust delimiter if needed
+test_data = pd.read_csv('Occupancy_test.txt', delimiter='\t')
+
+# Select features (Humidity, Light, Humidity ratio) and target (Occupancy)
+X_train = train_data[['Humidity', 'Light', 'HumidityRatio']]  # Training features
+y_train = train_data['Occupancy']  # Training target (Occupancy: 0 or 1)
+
+X_test = test_data[['Humidity', 'Light', 'HumidityRatio']]  # Testing features
+y_test = test_data['Occupancy']  # Testing target (Occupancy: 0 or 1)
+
+# List to store accuracies for different values of K
+accuracies = []
+
+# Loop over values of K from 1 to 10
+for k in range(1, 11):
+    # Create KNN classifier with current value of K
+    knn = KNeighborsClassifier(n_neighbors=k)
+    
+    # Train the KNN model using training data
+    knn.fit(X_train, y_train)
+    
+    # Predict the labels for the test set
+    y_pred = knn.predict(X_test)
+    
+    # Calculate the accuracy for the current K value
+    accuracy = accuracy_score(y_test, y_pred)
+    
+    # Append the accuracy to the list
+    accuracies.append(accuracy)
+    
+    # Print the accuracy for the current K
+    print(f'Accuracy for K={k}: {accuracy:.4f}')
+
+# Find the highest accuracy and the corresponding value of K
+max_accuracy = max(accuracies)
+best_k = accuracies.index(max_accuracy) + 1  # K is 1-indexed, so we add 1
+
+# Print the highest accuracy and the best K value
+print(f'\nHighest accuracy: {max_accuracy:.4f} at K={best_k}')
+
+
+
+
+************************************************************************************************************************************
+************************************************************************************************************************************
+
+
+
+
+
+ChatGPT said:
+
+To implement the KNN classifier from scratch using the Chi-squared distance function as shown, and then apply it to the Iris dataset with an 80/20 split, here's the approach we'll take:
+
+Plan:
+Chi-squared Distance Formula:
+
+𝜒
+2
+(
+𝑥
+,
+𝑦
+)
+=
+∑
+𝑖
+=
+1
+𝑛
+(
+𝑥
+𝑖
+−
+𝑦
+𝑖
+)
+2
+𝑥
+𝑖
++
+𝑦
+𝑖
+χ 
+2
+ (x,y)= 
+i=1
+∑
+n
+​
+  
+x 
+i
+​
+ +y 
+i
+​
+ 
+(x 
+i
+​
+ −y 
+i
+​
+ ) 
+2
+ 
+​
+ 
+This will be used to compute the distance between feature vectors.
+
+KNN Algorithm:
+
+Manually compute the distances between the test point and all training points.
+Sort by distance and select the nearest K neighbors.
+Determine the majority class among these neighbors.
+80/20 Split:
+
+Use 80% of the Iris dataset for training and 20% for testing.
+Accuracy and Confusion Matrix:
+
+After prediction, calculate accuracy.
+Compute the confusion matrix for classification performance.
+Here is the complete code with comments:
+
+python
+Copy code
+# Import necessary libraries
+import numpy as np
+import pandas as pd
+from collections import Counter
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# Chi-squared distance function
+def chi_squared_distance(x, y):
+    # Element-wise operation to compute the Chi-squared distance between two vectors
+    return np.sum((x - y)**2 / (x + y + 1e-10))  # Add small constant to avoid division by zero
+
+# KNN algorithm from scratch
+def knn_from_scratch(X_train, y_train, X_test, k):
+    predictions = []
+    for test_point in X_test:
+        # Calculate the distance from the test point to all training points
+        distances = [chi_squared_distance(test_point, train_point) for train_point in X_train]
+        
+        # Sort by distance and get the indices of the K nearest neighbors
+        k_indices = np.argsort(distances)[:k]
+        
+        # Find the labels of the K nearest neighbors
+        k_nearest_labels = [y_train[i] for i in k_indices]
+        
+        # Determine the most common label (majority vote)
+        most_common_label = Counter(k_nearest_labels).most_common(1)[0][0]
+        
+        # Append the predicted label to the predictions list
+        predictions.append(most_common_label)
+    
+    return predictions
+
+# Load the Iris dataset from sklearn (can also use a file)
+from sklearn.datasets import load_iris
+iris = load_iris()
+
+# Convert to a DataFrame
+df = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+df['target'] = iris.target  # Add the target column
+
+# Split the data into features and target
+X = df.iloc[:, :-1].values  # All feature columns
+y = df['target'].values  # The target column
+
+# Split the dataset into 80% training and 20% testing
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Set the value of K
+k = 3  # You can change this or run for multiple values
+
+# Make predictions using our KNN algorithm
+y_pred = knn_from_scratch(X_train, y_train, X_test, k)
+
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy:.4f}')
+
+# Compute the confusion matrix
+conf_matrix = confusion_matrix(y_test, y_pred)
+print('Confusion Matrix:')
+print(conf_matrix)
+
+
+
+
+**********************************************************************************************************************
+**********************************************************************************************************************
+
+
+
+
+Download the dataset
+• Perform EDA
+• Check the dataset is balance or not (using target variable “Label”)
+• Check whether there is any empty records, categorical feature, duplicate records, if yes
+then handle this and give a brief explanation why you have chosen this technique in a
+text cell or “jupyter/colab”
+• Check the correlation of your dataset and perform feature selection using Pearson
+Correlation
+• Analyze your dataset and think if feature scaling is required or not? If yes then apply any
+scaling technique based on your distribution.
+• Split your dataset in training , testing and validation. Train split will be 80% and test will
+be 20% . In validation split your training samples will be 70% and validation set will be
+30%. Briefly describe why we use validation set in a text cell. Declare Random_state=0
+• Apply KNN and check model training and testing accuracy.
+• Compare the accuracies by trying different metrics, combine all the training and testing
+accuracies of Euclidean, Manhattan etc. to compare their performance. Make a critical
+analysis what you have observed and where we have used different metrics?
+
+
+
+
+
+
+
+Step 1: Dataset Download and Loading
+Ensure the dataset is available. You can load it using Pandas if it's in CSV or similar format.
+
+python
+Copy code
+import pandas as pd
+
+# Load the dataset (assuming it's a CSV)
+# dataset = pd.read_csv('path_to_dataset.csv')  # Uncomment and provide correct path
+dataset = pd.read_csv('/mnt/data/your_dataset.csv')  # Replace with the actual path if necessary
+
+# Display the first few rows of the dataset
+dataset.head()
+Step 2: Exploratory Data Analysis (EDA)
+Check for Missing Values:
+python
+Copy code
+# Check for missing values
+missing_values = dataset.isnull().sum()
+print("Missing Values in Dataset:\n", missing_values)
+Check for Duplicates:
+python
+Copy code
+# Check for duplicate records
+duplicates = dataset.duplicated().sum()
+print(f"Number of duplicate records: {duplicates}")
+Categorical Features:
+python
+Copy code
+# Check for categorical features
+categorical_columns = dataset.select_dtypes(include=['object']).columns
+print("Categorical features:\n", categorical_columns)
+Handling Missing, Duplicates, and Categorical Features:
+If there are missing values, duplicates, or categorical features:
+
+Handling missing values: You can impute missing values using the median or mean for numeric columns or the mode for categorical features.
+Handling duplicates: If duplicates exist, drop them using dataset.drop_duplicates().
+Categorical encoding: If there are categorical features, apply pd.get_dummies() for one-hot encoding.
+python
+Copy code
+# Drop duplicate records if any
+dataset_cleaned = dataset.drop_duplicates()
+
+# Handle missing values (if any), example: fill with median or mean
+dataset_cleaned.fillna(dataset_cleaned.median(), inplace=True)
+
+# If there are categorical columns, apply one-hot encoding
+dataset_encoded = pd.get_dummies(dataset_cleaned, drop_first=True)
+Step 3: Class Balance Check
+Check if the target variable "Label" is balanced.
+
+python
+Copy code
+# Check class distribution (balance)
+class_distribution = dataset_cleaned['Label'].value_counts()
+print("Class Distribution:\n", class_distribution)
+If the dataset is imbalanced, you may need to consider techniques like oversampling, undersampling, or using performance metrics suited for imbalanced data.
+
+Step 4: Correlation Check & Feature Selection using Pearson Correlation
+Check the correlation of the features with each other, and perform feature selection based on Pearson correlation.
+
+python
+Copy code
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Compute the Pearson correlation matrix
+correlation_matrix = dataset_encoded.corr()
+
+# Plot the heatmap for visualization
+plt.figure(figsize=(12, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+plt.title('Correlation Heatmap')
+plt.show()
+
+# Feature Selection: Keep features with lower correlation or decide based on domain knowledge.
+Step 5: Feature Scaling
+Before applying KNN, you must determine whether feature scaling is necessary. If the feature values have very different ranges, scaling is important.
+
+python
+Copy code
+# Check feature ranges
+dataset_encoded.describe()
+
+# If scaling is needed, use StandardScaler or MinMaxScaler based on the distribution
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(dataset_encoded.drop('Label', axis=1))
+
+# Convert the scaled features back into a DataFrame
+scaled_df = pd.DataFrame(scaled_features, columns=dataset_encoded.columns[:-1])
+scaled_df['Label'] = dataset_encoded['Label']
+Step 6: Data Splitting
+Split the data into training, testing, and validation sets. Use an 80/20 split for training and testing, and further split the training data into 70/30 for validation.
+
+python
+Copy code
+from sklearn.model_selection import train_test_split
+
+# 80/20 train-test split
+X = scaled_df.drop('Label', axis=1)
+y = scaled_df['Label']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+# 70/30 split for training and validation
+X_train_split, X_val, y_train_split, y_val = train_test_split(X_train, y_train, test_size=0.3, random_state=0)
+
+print(f"Training samples: {X_train_split.shape}, Validation samples: {X_val.shape}, Testing samples: {X_test.shape}")
+Explanation of Validation Set:
+
+The validation set is used to tune model hyperparameters and prevent overfitting. It helps the model generalize better on unseen data, ensuring the model is not just memorizing the training data.
+Step 7: Apply KNN & Compare Different Metrics
+We will apply KNN using different distance metrics like Euclidean and Manhattan. We'll then compare training and testing accuracies.
+
+python
+Copy code
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+
+# Function to apply KNN and evaluate
+def apply_knn(metric):
+    knn = KNeighborsClassifier(n_neighbors=5, metric=metric)
+    knn.fit(X_train_split, y_train_split)
+    
+    # Predictions
+    y_train_pred = knn.predict(X_train_split)
+    y_val_pred = knn.predict(X_val)
+    
+    # Training and Validation Accuracy
+    train_acc = accuracy_score(y_train_split, y_train_pred)
+    val_acc = accuracy_score(y_val, y_val_pred)
+    
+    print(f"Metric: {metric}")
+    print(f"Training Accuracy: {train_acc:.4f}")
+    print(f"Validation Accuracy: {val_acc:.4f}")
+    print("-" * 30)
+
+# Test with different distance metrics
+for metric in ['euclidean', 'manhattan']:
+    apply_knn(metric)
+
+
+
+
+****************************************************************************************************************************************
+****************************************************************************************************************************************
+
+
+Apply KNN and check model training and testing accuracy.
+• Compare the accuracies by trying different algorithms, combine all the training and
+testing accuracies of auto, KDTress , brute etc. to compare their performance. Do analyze
+what you have observed and where we have used different algorithms? What is the
+impact of changing algorithm on accuracy and testing time?
+
+
+
+
+pip install scikit-learn
+Step 2: Apply KNN with Different Algorithms
+python
+Copy code
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+import time
+
+# Load the dataset (assuming it's already processed and scaled, see previous steps)
+# Replace with the actual dataset path if needed
+dataset = pd.read_csv('/mnt/data/your_processed_dataset.csv')  # Use your dataset here
+X = dataset.drop('Label', axis=1)
+y = dataset['Label']
+
+# Split the data into training and testing sets (80/20 split)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+# Function to apply KNN with different algorithms and evaluate performance
+def knn_with_algorithm(algorithm):
+    # Initialize KNN with the specified algorithm
+    knn = KNeighborsClassifier(n_neighbors=5, algorithm=algorithm)
+    
+    # Measure training time
+    start_train = time.time()
+    knn.fit(X_train, y_train)
+    end_train = time.time()
+    
+    # Measure prediction time for both training and testing data
+    start_test_train = time.time()
+    y_train_pred = knn.predict(X_train)
+    end_test_train = time.time()
+    
+    start_test = time.time()
+    y_test_pred = knn.predict(X_test)
+    end_test = time.time()
+    
+    # Calculate training and testing accuracy
+    train_accuracy = accuracy_score(y_train, y_train_pred)
+    test_accuracy = accuracy_score(y_test, y_test_pred)
+    
+    # Calculate time taken
+    train_time = end_train - start_train
+    test_time_train = end_test_train - start_test_train
+    test_time = end_test - start_test
+    
+    # Print results
+    print(f"Algorithm: {algorithm}")
+    print(f"Training Accuracy: {train_accuracy:.4f}")
+    print(f"Testing Accuracy: {test_accuracy:.4f}")
+    print(f"Training Time: {train_time:.4f} seconds")
+    print(f"Prediction Time on Train Data: {test_time_train:.4f} seconds")
+    print(f"Prediction Time on Test Data: {test_time:.4f} seconds")
+    print('-' * 40)
+    
+    # Return accuracies and times
+    return {
+        'algorithm': algorithm,
+        'train_accuracy': train_accuracy,
+        'test_accuracy': test_accuracy,
+        'train_time': train_time,
+        'test_time_train': test_time_train,
+        'test_time': test_time
+    }
+
+# Apply KNN with different algorithms
+results = []
+for algo in ['auto', 'kd_tree', 'ball_tree', 'brute']:
+    result = knn_with_algorithm(algo)
+    results.append(result)
+
+# Convert results to a DataFrame for better comparison
+results_df = pd.DataFrame(results)
+print(results_df)
+
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&LAB 4 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+
+
+
+Find out the root node of the decision tree from scratch on the below dataset (Age,
+Job_Status , Own_House , Credit Rating) using the ID3 algorithm. You can create this dataset
+in an Excelfile. (IG should be calculated for all the input Attributes).
+
+
+
+
+
+
+
+To solve this task and find the root node of the decision tree using the ID3 algorithm, we'll need to compute the Information Gain (IG) for each feature: Age, Job_Status, Owns_House, and Credit_Rating. The attribute with the highest Information Gain will be chosen as the root node.
+
+The steps we'll follow:
+
+Compute Entropy for the target variable (Class).
+Compute Entropy for each attribute, which requires us to calculate the conditional entropy for each attribute value.
+Calculate Information Gain for each attribute using the formula:
+𝐼
+𝐺
+(
+𝐴
+𝑡
+𝑡
+𝑟
+𝑖
+𝑏
+𝑢
+𝑡
+𝑒
+)
+=
+𝐸
+𝑛
+𝑡
+𝑟
+𝑜
+𝑝
+𝑦
+(
+𝐶
+𝑙
+𝑎
+𝑠
+𝑠
+)
+−
+∑
+(
+𝑃
+(
+𝑣
+𝑎
+𝑙
+𝑢
+𝑒
+)
+×
+𝐸
+𝑛
+𝑡
+𝑟
+𝑜
+𝑝
+𝑦
+(
+𝐶
+𝑙
+𝑎
+𝑠
+𝑠
+∣
+𝑣
+𝑎
+𝑙
+𝑢
+𝑒
+)
+)
+IG(Attribute)=Entropy(Class)−∑(P(value)×Entropy(Class∣value))
+Select the attribute with the highest IG as the root node.
+Let's go step by step.
+
+Step 1: Compute the Entropy of the Target (Class)
+The formula for entropy is:
+
+𝐸
+𝑛
+𝑡
+𝑟
+𝑜
+𝑝
+𝑦
+(
+𝑆
+)
+=
+−
+∑
+𝑝
+𝑖
+log
+⁡
+2
+(
+𝑝
+𝑖
+)
+Entropy(S)=−∑p 
+i
+​
+ log 
+2
+​
+ (p 
+i
+​
+ )
+where 
+𝑝
+𝑖
+p 
+i
+​
+  is the proportion of each class in the dataset.
+
+Step 2: Calculate Conditional Entropy and Information Gain for Each Attribute
+We will compute the conditional entropy for each attribute based on its possible values and calculate the Information Gain for all attributes.
+
+I'll write the Python code to compute Information Gain for each attribute from the dataset you've provided.
+
+python
+Copy code
+import pandas as pd
+import numpy as np
+
+# Creating the dataset from the table provided
+data = {
+    'Age': ['Young', 'Young', 'Young', 'Young', 'Young', 
+            'Middle', 'Middle', 'Middle', 'Middle', 'Middle',
+            'Old', 'Old', 'Old', 'Old', 'Old'],
+    'Job_Status': ['False', 'False', 'True', 'True', 'False', 
+                   'False', 'False', 'True', 'True', 'False',
+                   'False', 'True', 'True', 'True', 'False'],
+    'Owns_House': ['False', 'False', 'False', 'True', 'False',
+                   'False', 'False', 'True', 'True', 'True',
+                   'True', 'False', 'False', 'False', 'True'],
+    'Credit_Rating': ['Fair', 'Good', 'Good', 'Fair', 'Fair',
+                      'Fair', 'Good', 'Good', 'Excellent', 'Excellent',
+                      'Excellent', 'Good', 'Good', 'Excellent', 'Fair'],
+    'Class': ['No', 'No', 'Yes', 'Yes', 'No',
+              'No', 'No', 'Yes', 'Yes', 'Yes',
+              'Yes', 'Yes', 'Yes', 'Yes', 'No']
+}
+
+# Convert to DataFrame
+df = pd.DataFrame(data)
+
+# Function to calculate entropy
+def entropy(target_col):
+    elements, counts = np.unique(target_col, return_counts=True)
+    entropy = np.sum([(-counts[i]/np.sum(counts)) * np.log2(counts[i]/np.sum(counts)) for i in range(len(elements))])
+    return entropy
+
+# Function to calculate information gain
+def info_gain(data, split_attribute_name, target_name="Class"):
+    # Calculate the entropy of the total dataset
+    total_entropy = entropy(data[target_name])
+    
+    # Calculate the values and the counts for the split attribute
+    vals, counts = np.unique(data[split_attribute_name], return_counts=True)
+    
+    # Calculate the weighted entropy
+    weighted_entropy = np.sum([(counts[i]/np.sum(counts)) * entropy(data.where(data[split_attribute_name] == vals[i]).dropna()[target_name]) for i in range(len(vals))])
+    
+    # Calculate the information gain
+    information_gain = total_entropy - weighted_entropy
+    return information_gain
+
+# Calculate entropy of the whole dataset (Class attribute)
+total_entropy = entropy(df['Class'])
+print(f"Entropy of the Class: {total_entropy:.4f}")
+
+# Calculate Information Gain for each attribute
+attributes = ['Age', 'Job_Status', 'Owns_House', 'Credit_Rating']
+for attribute in attributes:
+    gain = info_gain(df, attribute, target_name="Class")
+    print(f"Information Gain for {attribute}: {gain:.4f}")
+
+
+
+
+*****************************************************************************************************************************
+*****************************************************************************************************************************
+
+
+Download the dataset
+● Perform EDA
+● Check whether the dataset is balanced or not (using target variable “Label”)
+● Check whether there is any empty records, categorical feature, or duplicate records, yes
+Then handle this and give a brief explanation why you have chosen this technique in a
+text cell or “jupyter/colab”
+● Check the correlation of your dataset and perform feature selection using Pearson
+Correlation
+● Analyze your dataset and think if feature scaling is required or not. If yes then apply any
+scaling technique based on your distribution.
+● Split your dataset in training, testing, and validation. The train split will be 80% and the
+test will be 20%. In the validation split your training samples will be 70% and the
+validation set will be 30%. Briefly describe why we use a validation set in a text cell.
+Declare Random_state=0
+● Apply DT and check model training and testing accuracy.
+
+
+
+
+
+Step 1: Download and Load the Dataset
+If you are working with a CSV dataset, you can load it as follows:
+
+python
+Copy code
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load dataset (replace 'your_dataset.csv' with the actual dataset filename)
+df = pd.read_csv('your_dataset.csv')
+
+# Check the first few rows of the dataset
+df.head()
+Step 2: Perform Exploratory Data Analysis (EDA)
+Start by understanding the dataset with basic statistics and visualizations.
+
+python
+Copy code
+# Check basic information and statistics
+df.info()
+df.describe()
+
+# Check for missing values
+print(df.isnull().sum())
+
+# Plot the distribution of the target variable (Label)
+sns.countplot(x='Label', data=df)
+plt.title('Distribution of Target Variable')
+plt.show()
+
+# Check the overall structure of the data
+df.hist(figsize=(10, 8))
+plt.tight_layout()
+plt.show()
+Step 3: Check for Balance in the Target Variable
+To check whether the dataset is balanced or not:
+
+python
+Copy code
+# Check the balance of the target variable (Label)
+label_counts = df['Label'].value_counts()
+print(label_counts)
+
+# Plot the distribution to visually assess balance
+label_counts.plot(kind='bar')
+plt.title('Class Distribution')
+plt.show()
+If the target variable is imbalanced (one class has significantly more data than the other), you might need to handle it using techniques like undersampling or oversampling.
+Step 4: Check for Missing, Categorical, or Duplicate Records
+python
+Copy code
+# Check for missing values
+missing_values = df.isnull().sum()
+print(missing_values[missing_values > 0])
+
+# Handle missing values if found (example: filling with mean or median)
+df.fillna(df.mean(), inplace=True)  # Example method to handle missing data
+
+# Check for categorical features (if there are any)
+categorical_cols = df.select_dtypes(include=['object']).columns
+print("Categorical columns: ", categorical_cols)
+
+# Convert categorical variables to numeric using one-hot encoding if necessary
+df = pd.get_dummies(df, drop_first=True)
+
+# Check for duplicate records
+duplicates = df.duplicated().sum()
+print(f"Number of duplicate records: {duplicates}")
+
+# Remove duplicates if necessary
+df.drop_duplicates(inplace=True)
+Explanation:
+
+Missing Values: We chose to fill missing values using the mean because it’s a standard approach for numeric features.
+Categorical Features: One-hot encoding is applied to categorical variables so that they can be processed in machine learning models.
+Duplicates: Removing duplicates is essential to avoid redundant information in model training.
+Step 5: Correlation and Feature Selection (using Pearson Correlation)
+python
+Copy code
+# Calculate Pearson correlation between features
+correlation_matrix = df.corr()
+
+# Visualize the correlation matrix
+plt.figure(figsize=(12, 8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
+plt.title('Correlation Matrix')
+plt.show()
+
+# Perform feature selection (based on correlation threshold, say 0.75)
+threshold = 0.75
+high_corr_features = correlation_matrix.index[abs(correlation_matrix["Label"]) > threshold]
+print(f"Highly correlated features: {high_corr_features}")
+Step 6: Feature Scaling
+If your dataset has features with varying scales, you should apply feature scaling. If the features follow a normal distribution, you can use StandardScaler, otherwise, use MinMaxScaler.
+
+python
+Copy code
+from sklearn.preprocessing import StandardScaler
+
+# Apply Standard Scaling
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(df.drop('Label', axis=1))
+
+# Create a new DataFrame with scaled features
+df_scaled = pd.DataFrame(scaled_features, columns=df.columns[:-1])
+df_scaled['Label'] = df['Label']
+Step 7: Train-Test-Validation Split
+We will split the data into train, validation, and test sets. First, an 80/20 split for train and test, and then a 70/30 split for training and validation.
+
+python
+Copy code
+from sklearn.model_selection import train_test_split
+
+# First split: 80% train, 20% test
+X = df_scaled.drop('Label', axis=1)
+y = df_scaled['Label']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+# Second split: 70% train, 30% validation within the training set
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.3, random_state=0)
+Explanation of Validation Set:
+The validation set is used to tune model hyperparameters and evaluate performance during training, while the test set is only used once at the very end to assess the generalization ability of the model.
+
+Step 8: Apply Decision Tree Classifier
+Finally, we can apply a Decision Tree classifier to the data and check the model’s performance on both training and test sets.
+
+python
+Copy code
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+# Create and train the Decision Tree model
+dt = DecisionTreeClassifier(random_state=0)
+dt.fit(X_train, y_train)
+
+# Predict on training and test sets
+train_preds = dt.predict(X_train)
+test_preds = dt.predict(X_test)
+
+# Evaluate accuracy
+train_accuracy = accuracy_score(y_train, train_preds)
+test_accuracy = accuracy_score(y_test, test_preds)
+
+print(f"Training Accuracy: {train_accuracy:.4f}")
+print(f"Testing Accuracy: {test_accuracy:.4f}"
+
+
+***************************************************************************************************
+***************************************************************************************************
+
+
+
+Find out the root node of the decision tree from scratch on the below dataset (Student, Prior_Experience, Course, Time) using the CART algorithm. You can create this dataset in an Excel file.
+
+
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+
+# Load the data
+data = {
+    'Student': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    'Prior Experience': ['Yes', 'No', 'Yes', 'No', 'Yes', 'No', 'Yes', 'Yes', 'Yes', 'Yes'],
+    'Course': ['Programming', 'Programming', 'History', 'Programming', 'English', 'Programming', 'Programming', 'Mathematics', 'Programming', 'Programming'],
+    'Time': ['Day', 'Day', 'Night', 'Night', 'Day', 'Day', 'Day', 'Night', 'Night', 'Night'],
+    'Liked': ['Yes', 'No', 'No', 'Yes', 'Yes', 'No', 'No', 'Yes', 'Yes', 'No']
+}
+
+df = pd.DataFrame(data)
+
+# Create a decision tree classifier
+clf = DecisionTreeClassifier()
+
+# Fit the classifier to the data
+clf.fit(df[['Student', 'Prior Experience', 'Course', 'Time']], df['Liked'])
+
+# Print the root node feature
+print("Root node feature:", clf.tree_.feature[0])
+
+
+
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&LAB 5 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+*&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+
+Download the Dataset
+● Perform EDA
+● Check whether the dataset is balanced or not (using target variable “Label”)
+● Check whether there is any empty records, categorical feature, or duplicate records, yes
+Then handle this and give a brief explanation why you have chosen this technique in a
+text cell or “jupyter/colab”
+● Analyze your dataset and think if feature scaling is required or not. If yes then apply any
+scaling technique based on your distribution.
+● Split your dataset in training, testing, and validation. The train split will be 80% and the
+test will be 20%. In the validation split your training samples will be 70% and the
+validation set will be 30%. Briefly describe why we use a validation set in a text cell.
+Declare Random_state=0
+● Apply Random Forest, XGBoost, AdaBoost and check model training and testing
+accuracy.
+● Compare the Training and Testing Results of all three algorithms
+● Briefly discuss your results in a text cell to justify why you have achieved these result,
+which algorithm is more prone to overfitting or underfitting in your case and which
+algorithm is improving Bias Variance Tradeoff more.
+
+
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.metrics import accuracy_score
+
+df = pd.read_csv('/content/heart.csv')
+df
+
+print(df.describe())
+print(df.isnull().sum())
+
+
+print(f"Number of duplicate records: {df.duplicated().sum()}")
+
+df.drop_duplicates(inplace=True)
+print(f"Number of duplicate records after removal: {df.duplicated().sum()}")
+
+label_counts = df['target'].value_counts()
+print(label_counts)
+
+numerical_features = ['age', 'trestbps', 'chol', 'thalach', 'oldpeak']
+scaler = StandardScaler()
+df[numerical_features] = scaler.fit_transform(df[numerical_features])
+
+
+X = df.drop('target', axis=1)
+y = df['target']
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+
+# Further split the training data into training and validation sets
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.3, random_state=0)
+
+"""
+We use a validation set to evaluate the performance of our model during training and tune hyperparameters.
+It helps prevent overfitting, where the model performs well on the training data but poorly on unseen data.
+By monitoring the performance on the validation set, we can adjust the model's complexity, regularization, or other parameters to achieve optimal generalization.
+"""
+
+print(f"Training set size: {len(X_train)}")
+print(f"Validation set size: {len(X_val)}")
+print(f"Test set size: {len(X_test)}")
+
+
+# applying models
+# Random Forest
+rf_model = RandomForestClassifier(random_state=42)
+rf_model.fit(X_train, y_train)
+rf_train_predictions = rf_model.predict(X_train)
+rf_test_predictions = rf_model.predict(X_test)
+rf_train_accuracy = accuracy_score(y_train, rf_train_predictions)
+rf_test_accuracy = accuracy_score(y_test, rf_test_predictions)
+
+
+
+# XGBoost
+xgb_model = XGBClassifier(random_state=42)
+xgb_model.fit(X_train, y_train)
+xgb_train_predictions = xgb_model.predict(X_train)
+xgb_test_predictions = xgb_model.predict(X_test)
+xgb_train_accuracy = accuracy_score(y_train, xgb_train_predictions)
+xgb_test_accuracy = accuracy_score(y_test, xgb_test_predictions)
+
+
+
+# AdaBoost
+ada_model = AdaBoostClassifier(random_state=42)
+ada_model.fit(X_train, y_train)
+ada_train_predictions = ada_model.predict(X_train)
+ada_test_predictions = ada_model.predict(X_test)
+ada_train_accuracy = accuracy_score(y_train, ada_train_predictions)
+ada_test_accuracy = accuracy_score(y_test, ada_test_predictions)
+
+
+
+print("Comparison of Training and Testing Results:")
+print("-----------------------------------------")
+print("Algorithm\t| Training Accuracy\t| Testing Accuracy")
+print("-----------------------------------------")
+print(f"Random Forest\t| {rf_train_accuracy:.4f}\t\t| {rf_test_accuracy:.4f}")
+print(f"XGBoost\t\t| {xgb_train_accuracy:.4f}\t\t| {xgb_test_accuracy:.4f}")
+print(f"AdaBoost\t| {ada_train_accuracy:.4f}\t\t| {ada_test_accuracy:.4f}")
+print("-----------------------------------------")
+
+
+
+****************************************************************************************************************************
+****************************************************************************************************************************
+
+
+Use the Same dataset as in Task 1
+● Extract Only two Attributes with independent variable to analyze your results (restEcg
+and Oldpeak)
+● Now train a Voting Classifier using (Decision Tree, KNN, Random Forest and XGboost)
+● Check which Voting Parameter will give you the best Accuracy either soft or hard
+● Check the best weights for these models.
+● Plot the Bias and Variance Tradeoff Graph after Voting Classifier
+
+
+
+# Import necessary libraries
+import pandas as pd                 # For data handling
+from sklearn.model_selection import train_test_split  # For splitting the data into training and testing sets
+from sklearn.tree import DecisionTreeClassifier       # Decision Tree model
+from sklearn.neighbors import KNeighborsClassifier    # KNN model
+from sklearn.ensemble import RandomForestClassifier   # Random Forest model
+from xgboost import XGBClassifier                     # XGBoost model
+from sklearn.ensemble import VotingClassifier         # Voting classifier
+from sklearn.metrics import accuracy_score            # For calculating accuracy
+
+# Load your dataset (assuming CSV format here)
+# Make sure to replace 'your_dataset.csv' with the actual path to your data file
+data = pd.read_csv('your_dataset.csv')
+
+# Select only the two attributes (restEcg and Oldpeak) and the target variable
+# Assuming 'target' is the name of the dependent variable (you may need to change this)
+X = data[['restEcg', 'Oldpeak']]   # Independent variables (features)
+y = data['target']                 # Dependent variable (target)
+
+# Split the data into training (70%) and testing (30%) sets
+# This is a standard split to check how well the model performs on unseen data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Initialize the classifiers
+# These are the individual models we will combine in a voting classifier
+dt_clf = DecisionTreeClassifier(random_state=42)  # Decision Tree
+knn_clf = KNeighborsClassifier()                  # K-Nearest Neighbors
+rf_clf = RandomForestClassifier(random_state=42)  # Random Forest
+xgb_clf = XGBClassifier(random_state=42, use_label_encoder=False)  # XGBoost
+
+# Voting Classifier - Hard Voting
+# In hard voting, each classifier votes for a class, and the majority wins.
+hard_voting_clf = VotingClassifier(estimators=[('Decision Tree', dt_clf), 
+                                               ('KNN', knn_clf), 
+                                               ('Random Forest', rf_clf), 
+                                               ('XGBoost', xgb_clf)],
+                                   voting='hard')
+
+# Train the hard voting classifier on the training set
+hard_voting_clf.fit(X_train, y_train)
+
+# Make predictions on the test set using the hard voting classifier
+y_pred_hard = hard_voting_clf.predict(X_test)
+
+# Check the accuracy of the hard voting classifier
+accuracy_hard = accuracy_score(y_test, y_pred_hard)
+print(f"Hard Voting Accuracy: {accuracy_hard:.2f}")
+
+# Voting Classifier - Soft Voting
+# In soft voting, the predicted probability of each classifier is averaged, and the class with the highest probability wins.
+soft_voting_clf = VotingClassifier(estimators=[('Decision Tree', dt_clf), 
+                                               ('KNN', knn_clf), 
+                                               ('Random Forest', rf_clf), 
+                                               ('XGBoost', xgb_clf)],
+                                   voting='soft')
+
+# Train the soft voting classifier on the training set
+soft_voting_clf.fit(X_train, y_train)
+
+# Make predictions on the test set using the soft voting classifier
+y_pred_soft = soft_voting_clf.predict(X_test)
+
+# Check the accuracy of the soft voting classifier
+accuracy_soft = accuracy_score(y_test, y_pred_soft)
+print(f"Soft Voting Accuracy: {accuracy_soft:.2f}")
+
+# Compare the accuracies to see which voting method (hard or soft) performs better
+
+# Now we check the best weights for each model in the voting classifier
+# Weights allow us to give more importance to certain classifiers
+weights_voting_clf = VotingClassifier(estimators=[('Decision Tree', dt_clf), 
+                                                  ('KNN', knn_clf), 
+                                                  ('Random Forest', rf_clf), 
+                                                  ('XGBoost', xgb_clf)],
+                                      voting='soft', weights=[1, 1, 2, 2])  # Here, we assign higher weights to Random Forest and XGBoost
+
+# Train the weighted voting classifier on the training set
+weights_voting_clf.fit(X_train, y_train)
+
+# Make predictions using the weighted voting classifier
+y_pred_weighted = weights_voting_clf.predict(X_test)
+
+# Check the accuracy of the weighted voting classifier
+accuracy_weighted = accuracy_score(y_test, y_pred_weighted)
+print(f"Weighted Soft Voting Accuracy: {accuracy_weighted:.2f}")
+
+# Now, we plot the Bias-Variance Tradeoff Graph
+# We will use a learning curve to show how the model's performance changes with more training data
+
+import matplotlib.pyplot as plt
+from sklearn.model_selection import learning_curve
+
+# Function to plot the learning curve to visualize bias-variance tradeoff
+def plot_learning_curve(estimator, X, y, title="Learning Curve", cv=5):
+    # Get the training sizes, train scores, and test scores using learning_curve function
+    train_sizes, train_scores, test_scores = learning_curve(estimator, X, y, cv=cv, n_jobs=-1, train_sizes=np.linspace(0.1, 1.0, 5))
+    
+    # Calculate the mean and standard deviation for both training and test scores
+    train_scores_mean = np.mean(train_scores, axis=1)
+    test_scores_mean = np.mean(test_scores, axis=1)
+    
+    # Plot the learning curve
+    plt.figure()
+    plt.plot(train_sizes, train_scores_mean, 'o-', color="r", label="Training Score")  # Red line for training score
+    plt.plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-Validation Score")  # Green line for validation score
+    plt.title(title)
+    plt.xlabel("Training Examples")
+    plt.ylabel("Score")
+    plt.legend(loc="best")
+    plt.grid()
+    plt.show()
+
+# Plot the learning curve for the final voting classifier (with weights)
+plot_learning_curve(weights_voting_clf, X_train, y_train)
+
+
+
+
+
+
+
+                                              OR
+
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+from xgboost import XGBClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
+import numpy as np
+
+X = df[['restecg', 'oldpeak']]
+y = df['target']
+
+# Split the dataset
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+# Define the models
+dt_model = DecisionTreeClassifier(random_state=42)
+knn_model = KNeighborsClassifier()
+rf_model = RandomForestClassifier(random_state=42)
+xgb_model = XGBClassifier(random_state=42)
+
+# Voting Classifier with 'hard' voting
+voting_classifier = VotingClassifier(estimators=[
+    ('dt', dt_model),
+    ('knn', knn_model),
+    ('rf', rf_model),
+    ('xgb', xgb_model)],
+    voting='hard')
+
+voting_classifier.fit(X_train, y_train)
+voting_predictions = voting_classifier.predict(X_test)
+
+voting_accuracy = accuracy_score(y_test, voting_predictions)
+print(f"Voting Classifier Accuracy in hard voting : {voting_accuracy}")
+
+voting_classifier = VotingClassifier(estimators=[
+    ('dt', dt_model),
+    ('knn', knn_model),
+    ('rf', rf_model),
+    ('xgb', xgb_model)],
+    voting='soft')
+
+
+voting_classifier.fit(X_train, y_train)
+voting_predictions = voting_classifier.predict(X_test)
+
+voting_accuracy = accuracy_score(y_test, voting_predictions)
+print(f"Voting Classifier Accuracy in soft voting : {voting_accuracy}")
+
+# Define voting strategies and model weights for optimization
+voting_strategies = ['hard', 'soft']
+weights_list = [
+    [1, 1, 1, 1],  # Equal weights
+    [2, 1, 1, 1],  # Higher weight for Decision Tree
+    [1, 2, 1, 1],  # Higher weight for KNN
+    [1, 1, 2, 1],  # Higher weight for Random Forest
+    [1, 1, 1, 2],  # Higher weight for XGBoost
+]
+
+
+best_accuracy = 0
+best_voting_strategy = None
+best_weights = None
+
+estimators = [('dt', dt_model), ('knn', knn_model), ('rf', rf_model), ('xgb', xgb_model)]
+
+for voting_strategy in voting_strategies:
+    for weights in weights_list:
+        voting_classifier = VotingClassifier(estimators=estimators, voting=voting_strategy, weights=weights)
+        voting_classifier.fit(X_train, y_train)
+        voting_predictions = voting_classifier.predict(X_test)
+        voting_accuracy = accuracy_score(y_test, voting_predictions)
+
+        if voting_accuracy > best_accuracy:
+            best_accuracy = voting_accuracy
+            best_voting_strategy = voting_strategy
+            best_weights = weights
+
+print(f"Best Voting Strategy: {best_voting_strategy}")
+print(f"Best Weights: {best_weights}")
+print(f"Best Accuracy: {best_accuracy}")
+
+train_accuracies = []
+test_accuracies = []
+model_complexity = np.arange(1, 11)
+
+for complexity in model_complexity:
+    rf_model = RandomForestClassifier(max_depth=complexity, random_state=42)
+    rf_model.fit(X_train, y_train)
+    train_predictions = rf_model.predict(X_train)
+    test_predictions = rf_model.predict(X_test)
+    train_accuracy = accuracy_score(y_train, train_predictions)
+    test_accuracy = accuracy_score(y_test, test_predictions)
+    train_accuracies.append(train_accuracy)
+    test_accuracies.append(test_accuracy)
+
+# Plot the results
+plt.figure(figsize=(8, 6))
+plt.plot(model_complexity, train_accuracies, label="Training Accuracy")
+plt.plot(model_complexity, test_accuracies, label="Testing Accuracy")
+plt.xlabel("Model Complexity")
+plt.ylabel("Accuracy")
+plt.title("Bias-Variance Tradeoff")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+
+*********************************************************************************************************************************
+*********************************************************************************************************************************
+
+
+● Use the Same dataset as in Task 1
+● Extract Only two Attributes with independent variable to analyze your results (restEcg
+and Chol)
+● Now train a Voting Classifier using (Random Forest and Adaboost)
+● Plot the training and testing accuracy of individual Random Forest and XGBoost +
+Accuracy graph of Voting Ensemble Technique as well.
+
+
+
+
+
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.metrics import accuracy_score
+from sklearn.ensemble import VotingClassifier
+import matplotlib.pyplot as plt
+
+
+df = pd.read_csv('/content/heart.csv')
+
+X = df[['restecg', 'chol']]
+y = df['target']
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+rf_model = RandomForestClassifier(random_state=42)
+ada_model = AdaBoostClassifier(random_state=42)
+
+
+voting_classifier = VotingClassifier(estimators=[
+    ('rf', rf_model),
+    ('ada', ada_model)],
+    voting='hard')
+
+voting_classifier.fit(X_train, y_train)
+voting_predictions = voting_classifier.predict(X_test)
+voting_accuracy = accuracy_score(y_test, voting_predictions)
+
+
+rf_model.fit(X_train, y_train)
+rf_train_predictions = rf_model.predict(X_train)
+rf_test_predictions = rf_model.predict(X_test)
+rf_train_accuracy = accuracy_score(y_train, rf_train_predictions)
+rf_test_accuracy = accuracy_score(y_test, rf_test_predictions)
+
+
+ada_model.fit(X_train, y_train)
+ada_train_predictions = ada_model.predict(X_train)
+ada_test_predictions = ada_model.predict(X_test)
+ada_train_accuracy = accuracy_score(y_train, ada_train_predictions)
+ada_test_accuracy = accuracy_score(y_test, ada_test_predictions)
+
+print("Training Accuracy:")
+print(f"Random Forest: {rf_train_accuracy}")
+print(f"AdaBoost: {ada_train_accuracy}")
+print(f"Voting Classifier: {voting_accuracy}")
+
+print("\nTesting Accuracy:")
+print(f"Random Forest: {rf_test_accuracy}")
+print(f"AdaBoost: {ada_test_accuracy}")
+print(f"Voting Classifier: {voting_accuracy}")
+
+# Plotting the accuracies
+plt.figure(figsize=(10, 6))
+plt.plot([rf_train_accuracy, rf_test_accuracy], label="Random Forest")
+plt.plot([ada_train_accuracy, ada_test_accuracy], label="AdaBoost")
+plt.plot([voting_accuracy, voting_accuracy], label="Voting Classifier")  # Assuming test accuracy for voting
+plt.xticks([0, 1], ["Training Accuracy", "Testing Accuracy"])
+plt.ylabel("Accuracy")
+plt.title("Training and Testing Accuracy Comparison")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&      LAB 6          &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+
+
+• Apply Evaluation Metrics to the previously covered labs
+• Accuracy Score , Classification Report
+• Confusion Matrix
+• Precision, Recall and Specificity
+• Calculate TP, TR , FP, FN
+• F1 Score
+• Plot AUC ROC Curve
+Remember to document your process, explain your decisions, and provide clear justifications for
+your chosen methods and models.
+
+
+
+
+
+from sklearn.metrics import (accuracy_score, classification_report, confusion_matrix,
+                             precision_score, recall_score, roc_curve, auc, f1_score)
+
+# Let's assume rf_predictions are the predictions from the Random Forest model
+# and y_test is your true labels
+
+# 1. Accuracy Score
+accuracy = accuracy_score(y_test, rf_predictions)
+print(f'Accuracy: {accuracy:.2f}')
+
+# 2. Classification Report
+class_report = classification_report(y_test, rf_predictions)
+print("Classification Report:\n", class_report)
+
+# 3. Confusion Matrix
+cm = confusion_matrix(y_test, rf_predictions)
+print("Confusion Matrix:\n", cm)
+
+# 4. Precision, Recall, Specificity
+precision = precision_score(y_test, rf_predictions, average='weighted')
+recall = recall_score(y_test, rf_predictions, average='weighted')
+specificity = cm[0, 0] / (cm[0, 0] + cm[0, 1])  # TN / (TN + FP)
+
+print(f'Precision: {precision:.2f}, Recall: {recall:.2f}, Specificity: {specificity:.2f}')
+
+# 5. TP, TN, FP, FN
+TP = cm[1, 1]  # True Positives
+TN = cm[0, 0]  # True Negatives
+FP = cm[0, 1]  # False Positives
+FN = cm[1, 0]  # False Negatives
+
+print(f'TP: {TP}, TN: {TN}, FP: {FP}, FN: {FN}')
+
+# 6. F1 Score
+f1 = f1_score(y_test, rf_predictions, average='weighted')
+print(f'F1 Score: {f1:.2f}')
+
+# 7. Plot AUC ROC Curve
+rf_probs = rf_model.predict_proba(X_test)[:, 1]  # Probabilities of the positive class
+fpr, tpr, thresholds = roc_curve(y_test, rf_probs, pos_label=1)  # Positive class label
+roc_auc = auc(fpr, tpr)
+
+plt.figure()
+plt.plot(fpr, tpr, label=f'Random Forest (AUC = {roc_auc:.2f})')
+plt.plot([0, 1], [0, 1], 'k--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic - Random Forest')
+plt.legend(loc='lower right')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
